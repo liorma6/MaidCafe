@@ -8,7 +8,7 @@ export default async function EventsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="text-center">
+      <div className="text-center pb-14 sm:pb-16">
         <h1 className="section-title text-3xl font-bold text-pink-700">
           אירועים שהיו
         </h1>
@@ -23,7 +23,7 @@ export default async function EventsPage() {
           <p className="mt-4 text-pink-500">עדיין אין אלבומים — בקרוב!</p>
         </div>
       ) : (
-        <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 sm:mt-12">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {events.map((event) => (
             <EventHeartCard key={event.id} event={event} />
           ))}

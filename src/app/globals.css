@@ -439,20 +439,25 @@ html.a11y-high-contrast img {
   position: relative;
   z-index: 2;
   flex-shrink: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
   line-height: 0;
 }
 
 .event-heart-card-shell > .heart-shape {
-  margin-top: -0.85rem;
+  margin-top: -1.15rem;
   position: relative;
   z-index: 1;
+  width: 100%;
 }
 
 .event-head-apron-img {
-  width: 50%;
-  min-width: 96px;
-  max-width: 152px;
+  width: 90%;
+  min-width: 168px;
+  max-width: 292px;
   height: auto;
+  display: block;
   filter: drop-shadow(0 2px 5px rgba(255, 105, 180, 0.35));
 }
 
