@@ -407,3 +407,23 @@ html.a11y-high-contrast img {
 .event-heart-card .heart-shape {
   border-width: 5px;
 }
+
+/* Partnership cards — soft badge shape (distinct from team heart & event album) */
+.partnership-badge {
+  border-radius: 2.5rem 2.5rem 1.25rem 1.25rem;
+  border: 4px solid #ff85c1;
+  box-shadow: 0 0 22px rgba(255, 133, 193, 0.38);
+}
+
+.partnership-badge::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, transparent 45%);
+  pointer-events: none;
+}
+
+.partnership-card:hover .partnership-badge {
+  box-shadow: 0 0 28px rgba(255, 105, 180, 0.48);
+}

@@ -1,6 +1,5 @@
-import Image from "next/image";
+import PartnershipCard from "@/components/PartnershipCard";
 import { getPartnerships } from "@/lib/db/partnerships";
-import { isRemoteImage } from "@/lib/image-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -22,35 +21,9 @@ export default async function PartnershipsPage() {
           <p className="mt-4 text-pink-500">שת״פים חדשים בדרך — עקבו אחרינו!</p>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {partnerships.map((partner) => (
-            <article
-              key={partner.id}
-              className="kawaii-card flex flex-col items-center p-6 text-center"
-            >
-              {partner.image ? (
-                <div className="relative mb-4 h-28 w-28 overflow-hidden rounded-2xl border-2 border-pink-200 bg-white">
-                  <Image
-                    src={partner.image}
-                    alt={partner.name}
-                    fill
-                    className="object-contain p-2"
-                    sizes="112px"
-                    unoptimized={isRemoteImage(partner.image)}
-                  />
-                </div>
-              ) : (
-                <div className="mb-4 flex h-28 w-28 items-center justify-center rounded-2xl border-2 border-dashed border-pink-200 bg-pink-50 text-3xl">
-                  🤝
-                </div>
-              )}
-              <h2 className="text-lg font-bold text-pink-700">{partner.name}</h2>
-              {partner.description && (
-                <p className="mt-2 text-sm leading-relaxed text-pink-800/70">
-                  {partner.description}
-                </p>
-              )}
-            </article>
+            <PartnershipCard key={partner.id} partner={partner} />
           ))}
         </div>
       )}
