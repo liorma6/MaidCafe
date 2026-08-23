@@ -3,6 +3,11 @@
 import { useState } from "react";
 import FileUploadButton from "@/components/FileUploadButton";
 import LinkifiedText from "@/components/LinkifiedText";
+import {
+  uploadEventFile,
+  uploadEventFilesSequential,
+  type EventUploadType,
+} from "@/lib/event-upload-client";
 import type {
   Announcement,
   EventAlbum,
@@ -252,6 +257,19 @@ function EventsTab({
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
+
+  const buildUploadQueue = (
+    cover: File | null,
+    gallery: File[],
+    videos: File[],
+  ): { file: File; type: EventUploadType }[] => {
+    const items: { file: File; type: EventUploadType }[] = [];
+    if (cover) items.push({ file: cover, type: "cover" });
+    gallery.forEach((file) => items.push({ file, type: "gallery" }));
+    videos.forEach((file) => items.push({ file, type: "video" }));
+    return items;
+  };
 
   const uploadFiles = async (
     eventId: string,
@@ -259,69 +277,39 @@ function EventsTab({
     gallery: File[],
     videos: File[],
   ): Promise<EventAlbum | null> => {
-    let latest: EventAlbum | null = null;
-
-    if (cover) {
-      const formData = new FormData();
-      formData.append("eventId", eventId);
-      formData.append("file", cover);
-      formData.append("type", "cover");
-      const res = await fetch("/api/events/upload", { method: "POST", body: formData });
-      if (res.ok) {
-        const data = await res.json();
-        latest = data.event;
-      }
-    }
-
-    for (const file of gallery) {
-      const formData = new FormData();
-      formData.append("eventId", eventId);
-      formData.append("file", file);
-      formData.append("type", "gallery");
-      const res = await fetch("/api/events/upload", { method: "POST", body: formData });
-      if (res.ok) {
-        const data = await res.json();
-        latest = data.event;
-      }
-    }
-
-    for (const file of videos) {
-      const formData = new FormData();
-      formData.append("eventId", eventId);
-      formData.append("file", file);
-      formData.append("type", "video");
-      const res = await fetch("/api/events/upload", { method: "POST", body: formData });
-      if (res.ok) {
-        const data = await res.json();
-        latest = data.event;
-      } else {
-        const data = await res.json();
-        showMessage(data.error || "שגיאה בהעלאת סרטון");
-      }
-    }
-
-    return latest;
+    const queue = buildUploadQueue(cover, gallery, videos);
+    if (queue.length === 0) return null;
+    return uploadEventFilesSequential(eventId, queue, setUploadProgress);
   };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setUploadProgress(null);
+    let created: EventAlbum | null = null;
 
-    const res = await fetch("/api/events", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, date, endDate: endDate || null, description }),
-    });
+    try {
+      const res = await fetch("/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, date, endDate: endDate || null, description }),
+      });
 
-    if (res.ok) {
-      let item: EventAlbum = await res.json();
-      const withImages = await uploadFiles(
-        item.id,
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "שגיאה ביצירת אירוע");
+      }
+
+      const eventRecord = (await res.json()) as EventAlbum;
+      created = eventRecord;
+      let item: EventAlbum = eventRecord;
+      const withMedia = await uploadFiles(
+        eventRecord.id,
         coverFile,
         galleryFiles,
         videoFiles,
       );
-      if (withImages) item = withImages;
+      if (withMedia) item = withMedia;
 
       setData((d) => ({ ...d, events: [item, ...d.events] }));
       setTitle("");
@@ -333,11 +321,22 @@ function EventsTab({
       setVideoFiles([]);
       setCoverPreview(null);
       showMessage("אירוע נוצר בהצלחה! ♡");
-    } else {
-      const data = await res.json();
-      showMessage(data.error || "שגיאה ביצירת אירוע");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "שגיאה בהעלאת הקבצים";
+      if (created) {
+        setData((d) => ({
+          ...d,
+          events: [created!, ...d.events.filter((ev) => ev.id !== created!.id)],
+        }));
+        showMessage(`האירוע נוצר, אך ההעלאה נכשלה: ${message}`);
+      } else {
+        showMessage(message);
+      }
+    } finally {
+      setLoading(false);
+      setUploadProgress(null);
     }
-    setLoading(false);
   };
 
   const handleCoverSelect = (file: File | null) => {
@@ -346,35 +345,50 @@ function EventsTab({
     setCoverPreview(file ? URL.createObjectURL(file) : null);
   };
 
-  const handleUpload = async (
+  const handleUploadMany = async (
     eventId: string,
-    file: File,
-    type: "cover" | "gallery" | "video",
+    files: File[],
+    type: EventUploadType,
   ) => {
-    const formData = new FormData();
-    formData.append("eventId", eventId);
-    formData.append("file", file);
-    formData.append("type", type);
-    const res = await fetch("/api/events/upload", {
-      method: "POST",
-      body: formData,
-    });
-    if (res.ok) {
-      const { event } = await res.json();
+    if (files.length === 0) return;
+
+    setLoading(true);
+    setUploadProgress(null);
+
+    try {
+      const items = files.map((file) => ({ file, type }));
+      const event =
+        items.length === 1
+          ? await (async () => {
+              setUploadProgress(
+                type === "video"
+                  ? "מעלה סרטון..."
+                  : type === "cover"
+                    ? "מעלה תמונה ראשית..."
+                    : "מעלה תמונה...",
+              );
+              return uploadEventFile(eventId, items[0].file, type);
+            })()
+          : await uploadEventFilesSequential(eventId, items, setUploadProgress);
+
       setData((d) => ({
         ...d,
-        events: d.events.map((e) => (e.id === eventId ? event : e)),
+        events: d.events.map((ev) => (ev.id === eventId ? event : ev)),
       }));
       showMessage(
         type === "cover"
           ? "תמונה ראשית הועלתה! ♡"
           : type === "video"
-            ? "סרטון הועלה! ♡"
-            : "תמונה הועלתה! ♡",
+            ? "הסרטונים הועלו! ♡"
+            : "התמונות הועלו! ♡",
       );
-    } else {
-      const data = await res.json();
-      showMessage(data.error || "שגיאה בהעלאה");
+    } catch (error) {
+      showMessage(
+        error instanceof Error ? error.message : "שגיאה בהעלאה",
+      );
+    } finally {
+      setLoading(false);
+      setUploadProgress(null);
     }
   };
 
@@ -547,9 +561,20 @@ function EventsTab({
         </div>
 
         <button type="submit" disabled={loading} className="admin-btn">
-          {loading ? "יוצר..." : "צור אירוע ♡"}
+          {loading ? "מעלה..." : "צור אירוע ♡"}
         </button>
+        {uploadProgress && (
+          <p className="text-center text-sm font-semibold text-pink-600">
+            {uploadProgress}
+          </p>
+        )}
       </form>
+
+      {uploadProgress && (
+        <p className="rounded-xl bg-pink-100 px-4 py-3 text-center text-sm font-semibold text-pink-700">
+          {uploadProgress}
+        </p>
+      )}
 
       {events.map((event) => (
         <div key={event.id} className="kawaii-card p-6">
@@ -625,7 +650,7 @@ function EventsTab({
                 hint="החלפת כריכת האלבום"
                 onChange={(files) => {
                   const file = files[0];
-                  if (file) handleUpload(event.id, file, "cover");
+                  if (file) handleUploadMany(event.id, [file], "cover");
                 }}
               />
             </div>
@@ -636,7 +661,7 @@ function EventsTab({
                 multiple
                 variant="secondary"
                 onChange={(files) => {
-                  files.forEach((f) => handleUpload(event.id, f, "gallery"));
+                  if (files.length > 0) handleUploadMany(event.id, files, "gallery");
                 }}
               />
             </div>
@@ -648,7 +673,7 @@ function EventsTab({
                 multiple
                 variant="secondary"
                 onChange={(files) => {
-                  files.forEach((f) => handleUpload(event.id, f, "video"));
+                  if (files.length > 0) handleUploadMany(event.id, files, "video");
                 }}
               />
             </div>
