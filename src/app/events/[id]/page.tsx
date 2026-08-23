@@ -32,14 +32,14 @@ export default async function EventDetailPage({ params }: Props) {
 
       <header className="space-y-4">
         {event.coverImage && (
-          <div className="relative aspect-[16/9] overflow-hidden rounded-2xl border-4 border-pink-200">
+          <div className="relative mx-auto aspect-[4/5] w-full max-w-2xl overflow-hidden rounded-2xl border-4 border-pink-200 bg-pink-50 sm:aspect-[3/4]">
             <Image
               src={event.coverImage}
               alt={event.title}
               fill
-              className="object-cover"
+              className="object-contain p-2"
               priority
-              sizes="(max-width: 768px) 100vw, 800px"
+              sizes="(max-width: 768px) 100vw, 672px"
               unoptimized={isRemoteImage(event.coverImage)}
             />
           </div>
@@ -90,13 +90,13 @@ export default async function EventDetailPage({ params }: Props) {
             {event.images.map((img) => (
               <div
                 key={img}
-                className="relative aspect-square overflow-hidden rounded-xl border-2 border-pink-200"
+                className="relative aspect-[4/5] overflow-hidden rounded-xl border-2 border-pink-200 bg-pink-50"
               >
                 <Image
                   src={img}
                   alt={event.title}
                   fill
-                  className="object-cover transition hover:scale-110"
+                  className="object-contain p-1"
                   sizes="(max-width: 768px) 50vw, 33vw"
                   unoptimized={isRemoteImage(img)}
                 />

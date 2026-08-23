@@ -20,13 +20,13 @@ export default function EventAlbumCard({ event }: Props) {
       href={`/events/${event.id}`}
       className="group block overflow-hidden rounded-xl border-2 border-pink-200 bg-white transition hover:border-pink-400 hover:shadow-lg"
     >
-      <div className="relative aspect-square overflow-hidden bg-pink-50">
+      <div className="relative aspect-[4/5] overflow-hidden bg-pink-50">
         {cover ? (
           <Image
             src={cover}
             alt={event.title}
             fill
-            className="object-cover transition duration-300 group-hover:scale-105"
+            className="object-contain p-1 transition duration-300 group-hover:scale-[1.02]"
             sizes="(max-width: 640px) 50vw, 33vw"
             unoptimized={isRemoteImage(cover)}
           />
