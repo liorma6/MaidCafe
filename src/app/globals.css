@@ -291,29 +291,65 @@ html.a11y-high-contrast img {
   filter: grayscale(1) contrast(1.2);
 }
 
-/* Chibi hover peek */
-.chibi-peek {
+/* Chibi screen-edge peek */
+.chibi-screen-peek {
   opacity: 0;
-  transform: translateY(16px) scale(0.85);
-  transition:
-    opacity 0.35s ease,
-    transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.group:hover .chibi-peek {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+.chibi-screen-peek-active.chibi-screen-peek-left {
+  animation: chibi-screen-from-left 3.5s ease-in-out forwards;
 }
 
-.chibi-peek-img {
-  animation: none;
+.chibi-screen-peek-active.chibi-screen-peek-right {
+  animation: chibi-screen-from-right 3.5s ease-in-out forwards;
 }
 
-.group:hover .chibi-peek-img {
-  animation: chibi-peek-bounce 1.6s ease-in-out infinite;
+@keyframes chibi-screen-from-left {
+  0% {
+    opacity: 0;
+    transform: translateX(calc(-100% - 1rem)) translateY(8px) scale(0.9);
+  }
+  12% {
+    opacity: 1;
+    transform: translateX(1rem) translateY(0) scale(1);
+  }
+  22% {
+    transform: translateX(1rem) translateY(-6px) scale(1.02);
+  }
+  32% {
+    transform: translateX(1rem) translateY(0) scale(1);
+  }
+  78% {
+    opacity: 1;
+    transform: translateX(1rem) translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(calc(-100% - 1rem)) translateY(8px) scale(0.9);
+  }
 }
 
-@keyframes chibi-peek-bounce {
-  0%, 100% { transform: translateY(0) rotate(-2deg); }
-  50% { transform: translateY(-8px) rotate(2deg); }
+@keyframes chibi-screen-from-right {
+  0% {
+    opacity: 0;
+    transform: translateX(calc(100% + 1rem)) translateY(8px) scale(0.9);
+  }
+  12% {
+    opacity: 1;
+    transform: translateX(-1rem) translateY(0) scale(1);
+  }
+  22% {
+    transform: translateX(-1rem) translateY(-6px) scale(1.02);
+  }
+  32% {
+    transform: translateX(-1rem) translateY(0) scale(1);
+  }
+  78% {
+    opacity: 1;
+    transform: translateX(-1rem) translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(calc(100% + 1rem)) translateY(8px) scale(0.9);
+  }
 }

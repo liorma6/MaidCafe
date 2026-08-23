@@ -6,6 +6,7 @@ import {
   getPartnerships,
   updatePartnership,
 } from "@/lib/db/partnerships";
+import { uploadImage } from "@/lib/storage";
 
 export async function GET() {
   try {
@@ -22,18 +23,24 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     await requireAdmin();
-    const { name, description } = (await request.json()) as {
-      name?: string;
-      description?: string;
-    };
+    const formData = await request.formData();
+    const name = (formData.get("name") as string)?.trim();
+    const description = (formData.get("description") as string)?.trim();
+    const file = formData.get("file") as File | null;
 
-    if (!name?.trim()) {
+    if (!name) {
       return NextResponse.json({ error: "נא למלא שם עסק" }, { status: 400 });
     }
 
+    if (!file) {
+      return NextResponse.json({ error: "נא לבחור תמונה" }, { status: 400 });
+    }
+
+    const imageUrl = await uploadImage("partnerships", file);
     const item = await createPartnership({
-      name: name.trim(),
-      description: description?.trim(),
+      name,
+      description,
+      image: imageUrl,
     });
 
     return NextResponse.json(item);

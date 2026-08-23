@@ -1,4 +1,4 @@
-import TeamCard from "@/components/TeamCard";
+import TeamPageClient from "@/components/TeamPageClient";
 import { getTeamMembers } from "@/lib/db/team";
 
 export const dynamic = "force-dynamic";
@@ -7,7 +7,7 @@ export default async function TeamPage() {
   const team = await getTeamMembers();
 
   return (
-    <div className="space-y-8 overflow-visible">
+    <div className="space-y-8">
       <div className="text-center">
         <h1 className="section-title text-3xl font-bold text-pink-700">
           מידע על הצוות
@@ -17,15 +17,7 @@ export default async function TeamPage() {
         </p>
       </div>
 
-      <div className="grid gap-8 overflow-visible sm:grid-cols-2">
-        {team.map((member, index) => (
-          <TeamCard
-            key={member.id}
-            member={member}
-            peekSide={index % 2 === 0 ? "left" : "right"}
-          />
-        ))}
-      </div>
+      <TeamPageClient team={team} />
     </div>
   );
 }

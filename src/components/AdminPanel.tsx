@@ -1151,21 +1151,32 @@ function PartnershipsTab({
 }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!imageFile) {
+      showMessage("נא לבחור תמונה");
+      return;
+    }
     setLoading(true);
+
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("description", description);
+    formData.append("file", imageFile);
+
     const res = await fetch("/api/partnerships", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, description }),
+      body: formData,
     });
     if (res.ok) {
       const item = await res.json();
       setData((d) => ({ ...d, partnerships: [item, ...d.partnerships] }));
       setName("");
       setDescription("");
-      showMessage("שת״פ נוסף! עכשיו אפשר להעלות תמונה 🤝");
+      setImageFile(null);
+      showMessage("שת״פ נוסף בהצלחה! 🤝");
     } else {
       const data = await res.json();
       showMessage(data.error || "שגיאה");
@@ -1224,6 +1235,14 @@ function PartnershipsTab({
           placeholder="תיאור קצר"
           rows={2}
           className="admin-input"
+        />
+        <FileUploadButton
+          label="📸 תמונת העסק"
+          hint="חובה — לוגו או תמונה של השותף"
+          onChange={(files) => setImageFile(files[0] || null)}
+          selectedLabel={
+            imageFile ? `נבחר: ${imageFile.name}` : undefined
+          }
         />
         <button type="submit" disabled={loading} className="admin-btn">
           {loading ? "מוסיף..." : "הוסף שת״פ"}

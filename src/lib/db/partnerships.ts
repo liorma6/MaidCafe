@@ -33,6 +33,7 @@ export async function getPartnerships(): Promise<Partnership[]> {
 export async function createPartnership(input: {
   name: string;
   description?: string;
+  image?: string;
 }): Promise<Partnership> {
   const supabase = getSupabaseAdmin();
   const { data: last } = await supabase
@@ -49,7 +50,7 @@ export async function createPartnership(input: {
     .insert({
       name: input.name,
       description: input.description || "",
-      image: "",
+      image: input.image || "",
       sort_order: sortOrder,
     })
     .select("*")
