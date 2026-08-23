@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import FileUploadButton from "@/components/FileUploadButton";
+import LinkifiedText from "@/components/LinkifiedText";
 import type {
   Announcement,
   EventAlbum,
@@ -197,7 +198,7 @@ function AnnouncementsTab({
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="תוכן ההודעה..."
+          placeholder="תוכן ההודעה... (קישורים עם https:// יהיו לחיצים)"
           rows={4}
           className="admin-input"
           required
@@ -212,7 +213,10 @@ function AnnouncementsTab({
           <div key={a.id} className="kawaii-card flex items-start justify-between p-4">
             <div>
               <h3 className="font-bold text-pink-700">{a.title}</h3>
-              <p className="mt-1 text-sm text-pink-800/70">{a.content}</p>
+              <LinkifiedText
+                text={a.content}
+                className="mt-1 text-sm text-pink-800/70 whitespace-pre-wrap"
+              />
             </div>
             <button
               onClick={() => handleDelete(a.id)}

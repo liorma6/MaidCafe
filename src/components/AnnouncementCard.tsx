@@ -1,4 +1,5 @@
 import type { Announcement } from "@/lib/types";
+import LinkifiedText from "@/components/LinkifiedText";
 
 interface Props {
   announcement: Announcement;
@@ -19,9 +20,10 @@ export default function AnnouncementCard({ announcement }: Props) {
       <h3 className="mb-3 text-xl font-bold text-pink-700">
         {announcement.title}
       </h3>
-      <p className="leading-relaxed text-pink-900/80 whitespace-pre-wrap">
-        {announcement.content}
-      </p>
+      <LinkifiedText
+        text={announcement.content}
+        className="leading-relaxed text-pink-900/80 whitespace-pre-wrap"
+      />
     </article>
   );
 }
