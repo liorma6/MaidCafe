@@ -99,6 +99,78 @@ textarea.admin-input {
   transform: none;
 }
 
+.admin-upload-btn {
+  display: flex;
+  width: 100%;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 1rem;
+  border: 2px dashed transparent;
+  padding: 0.875rem 1rem;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.admin-upload-btn:hover {
+  transform: translateY(-2px);
+}
+
+.admin-upload-btn-primary {
+  background: linear-gradient(135deg, #ffe0ec, #ffd6f0);
+  border-color: #ff85c1;
+  color: #9d174d;
+  box-shadow: 0 4px 12px rgba(255, 105, 180, 0.2);
+}
+
+.admin-upload-btn-primary:hover {
+  background: linear-gradient(135deg, #ffd0e3, #ffc0d9);
+  border-color: #ff69b4;
+  box-shadow: 0 6px 18px rgba(255, 105, 180, 0.35);
+}
+
+.admin-upload-btn-secondary {
+  background: white;
+  border-color: #ffc0d9;
+  color: #be185d;
+  box-shadow: 0 2px 8px rgba(255, 105, 180, 0.12);
+}
+
+.admin-upload-btn-secondary:hover {
+  background: #fff5f8;
+  border-color: #ff69b4;
+  box-shadow: 0 4px 14px rgba(255, 105, 180, 0.25);
+}
+
+.admin-upload-btn-icon {
+  display: flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: white;
+  font-size: 1.125rem;
+  box-shadow: 0 2px 6px rgba(255, 105, 180, 0.2);
+}
+
+.admin-upload-btn-action {
+  margin-right: auto;
+  margin-left: auto;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #db2777;
+}
+
+.admin-upload-btn-primary:hover .admin-upload-btn-action,
+.admin-upload-btn-secondary:hover .admin-upload-btn-action {
+  background: #ff69b4;
+  color: white;
+}
+
 /* Team heart card */
 .heart-shape {
   border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;

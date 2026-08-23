@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import FileUploadButton from "@/components/FileUploadButton";
 import type {
   Announcement,
   EventAlbum,
@@ -389,15 +390,14 @@ function EventsTab({
         <div className="space-y-3 rounded-2xl border-2 border-dashed border-pink-200 bg-pink-50/50 p-4">
           <p className="text-sm font-bold text-pink-700">תמונות האירוע</p>
 
-          <label className="block text-sm text-pink-600">
-            🖼️ תמונה ראשית (כריכת האלבום)
-            <input
-              type="file"
-              accept="image/*"
-              className="mt-1 block w-full text-sm"
-              onChange={(e) => handleCoverSelect(e.target.files?.[0] || null)}
-            />
-          </label>
+          <FileUploadButton
+            label="🖼️ תמונה ראשית"
+            hint="כריכת האלבום — מופיעה ברשימת האירועים"
+            onChange={(files) => handleCoverSelect(files[0] || null)}
+            selectedLabel={
+              coverFile ? `נבחר: ${coverFile.name}` : undefined
+            }
+          />
           {coverPreview && (
             <img
               src={coverPreview}
@@ -406,23 +406,18 @@ function EventsTab({
             />
           )}
 
-          <label className="block text-sm text-pink-600">
-            📸 תמונות לגלריה (אפשר לבחור כמה)
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              className="mt-1 block w-full text-sm"
-              onChange={(e) =>
-                setGalleryFiles(e.target.files ? Array.from(e.target.files) : [])
-              }
-            />
-          </label>
-          {galleryFiles.length > 0 && (
-            <p className="text-xs text-pink-400">
-              נבחרו {galleryFiles.length} תמונות לגלריה
-            </p>
-          )}
+          <FileUploadButton
+            label="📸 תמונות לגלריה"
+            hint="אפשר לבחור כמה תמונות בבת אחת"
+            multiple
+            variant="secondary"
+            onChange={setGalleryFiles}
+            selectedLabel={
+              galleryFiles.length > 0
+                ? `נבחרו ${galleryFiles.length} תמונות`
+                : undefined
+            }
+          />
         </div>
 
         <button type="submit" disabled={loading} className="admin-btn">
@@ -475,45 +470,37 @@ function EventsTab({
             ))}
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <label className="admin-btn inline-block cursor-pointer text-sm">
-              🖼️ תמונה ראשית
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <div className="min-w-[220px] flex-1">
+              <FileUploadButton
+                label="🖼️ תמונה ראשית"
+                hint="החלפת כריכת האלבום"
+                onChange={(files) => {
+                  const file = files[0];
                   if (file) handleUpload(event.id, file, "cover");
                 }}
               />
-            </label>
+            </div>
+            <div className="min-w-[220px] flex-1">
+              <FileUploadButton
+                label="📸 תמונות לגלריה"
+                hint="הוספת תמונות לאלבום"
+                multiple
+                variant="secondary"
+                onChange={(files) => {
+                  files.forEach((f) => handleUpload(event.id, f, "gallery"));
+                }}
+              />
+            </div>
             {event.coverImage && (
               <button
                 type="button"
                 onClick={() => handleRemoveCover(event)}
-                className="rounded-full bg-pink-100 px-4 py-2 text-sm text-pink-700 hover:bg-pink-200"
+                className="self-start rounded-full border-2 border-pink-200 bg-white px-4 py-3 text-sm font-semibold text-pink-700 transition hover:border-red-300 hover:bg-red-50 hover:text-red-600"
               >
                 הסר תמונה ראשית
               </button>
             )}
-            <label className="cursor-pointer rounded-full bg-pink-100 px-4 py-2 text-sm font-semibold text-pink-700 hover:bg-pink-200">
-              📸 תמונות לגלריה
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={(e) => {
-                  const files = e.target.files;
-                  if (files) {
-                    Array.from(files).forEach((f) =>
-                      handleUpload(event.id, f, "gallery"),
-                    );
-                  }
-                }}
-              />
-            </label>
           </div>
         </div>
       ))}
@@ -635,26 +622,22 @@ function MerchTab({
             <h3 className="font-bold text-pink-700">{item.title}</h3>
             <p className="text-sm text-pink-800/70">{item.description}</p>
             <p className="font-semibold text-pink-600">{item.price}</p>
-            <div className="mt-2 flex gap-2">
-              <label className="cursor-pointer text-sm text-pink-500 hover:text-pink-700">
-                📸 העלאת תמונה
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleUpload(item.id, file);
-                  }}
-                />
-              </label>
-              <button
-                onClick={() => handleDelete(item.id)}
-                className="text-sm text-red-400 hover:text-red-600"
-              >
-                מחק
-              </button>
+            <div className="mt-3">
+              <FileUploadButton
+                label="📸 העלאת תמונה"
+                hint="תמונת המוצר"
+                onChange={(files) => {
+                  const file = files[0];
+                  if (file) handleUpload(item.id, file);
+                }}
+              />
             </div>
+            <button
+              onClick={() => handleDelete(item.id)}
+              className="mt-2 text-sm text-red-400 hover:text-red-600"
+            >
+              מחק
+            </button>
           </div>
         </div>
       ))}
@@ -771,16 +754,12 @@ function TeamTab({
             className="admin-input"
             required
           />
-          <label className="block text-sm text-pink-600">
-            תמונה מצויירת (חובה)
-            <input
-              type="file"
-              accept="image/*"
-              className="mt-1 block w-full text-sm"
-              onChange={(e) => setNewImage(e.target.files?.[0] || null)}
-              required
-            />
-          </label>
+          <FileUploadButton
+            label="📸 תמונה מצויירת"
+            hint="חובה — תמונת חבר/ת הצוות"
+            onChange={(files) => setNewImage(files[0] || null)}
+            selectedLabel={newImage ? `נבחר: ${newImage.name}` : undefined}
+          />
           <div className="flex gap-2">
             <button type="submit" disabled={loading} className="admin-btn">
               {loading ? "מוסיף..." : "הוסף לצוות ♡"}
