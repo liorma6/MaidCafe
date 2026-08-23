@@ -1,7 +1,12 @@
 import { getSessionEmail } from "@/lib/auth";
-import { readContent } from "@/lib/data";
+import { getAnnouncements } from "@/lib/db/announcements";
+import { getEvents } from "@/lib/db/events";
+import { getMerch } from "@/lib/db/merch";
+import { getTeamMembers } from "@/lib/db/team";
 import AdminLoginForm from "@/components/AdminLoginForm";
 import AdminPanel from "@/components/AdminPanel";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const email = await getSessionEmail();
@@ -14,17 +19,21 @@ export default async function AdminPage() {
     );
   }
 
-  const content = await readContent();
+  const [announcements, events, merch, team] = await Promise.all([
+    getAnnouncements(),
+    getEvents(),
+    getMerch(),
+    getTeamMembers(),
+  ]);
 
   return (
     <AdminPanel
       adminEmail={email}
       initialData={{
-        announcements: content.announcements,
-        events: content.events,
-        merch: content.merch,
-        team: content.team,
-        applications: content.applications,
+        announcements,
+        events,
+        merch,
+        team,
       }}
     />
   );

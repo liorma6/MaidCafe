@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
 import { requireAdmin } from "@/lib/auth";
-import { readContent, writeContent } from "@/lib/data";
+import {
+  createAnnouncement,
+  deleteAnnouncement,
+  getAnnouncements,
+} from "@/lib/db/announcements";
 
 export async function GET() {
-  const content = await readContent();
-  return NextResponse.json(content.announcements.filter((a) => a.active));
+  try {
+    const announcements = await getAnnouncements(true);
+    return NextResponse.json(announcements);
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "שגיאת שרת" },
+      { status: 500 },
+    );
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -20,20 +30,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "נא למלא כותרת ותוכן" }, { status: 400 });
     }
 
-    const siteContent = await readContent();
-    const announcement = {
-      id: uuidv4(),
-      title: title.trim(),
-      content: body.trim(),
-      createdAt: new Date().toISOString(),
-      active: true,
-    };
-
-    siteContent.announcements.unshift(announcement);
-    await writeContent(siteContent);
+    const announcement = await createAnnouncement(title.trim(), body.trim());
     return NextResponse.json(announcement);
-  } catch {
-    return NextResponse.json({ error: "אין הרשאה" }, { status: 401 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "שגיאת שרת";
+    const status = message === "Unauthorized" ? 401 : 500;
+    return NextResponse.json({ error: status === 401 ? "אין הרשאה" : message }, { status });
   }
 }
 
@@ -45,13 +47,11 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "חסר מזהה" }, { status: 400 });
     }
 
-    const siteContent = await readContent();
-    siteContent.announcements = siteContent.announcements.filter(
-      (a) => a.id !== id,
-    );
-    await writeContent(siteContent);
+    await deleteAnnouncement(id);
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "אין הרשאה" }, { status: 401 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "שגיאת שרת";
+    const status = message === "Unauthorized" ? 401 : 500;
+    return NextResponse.json({ error: status === 401 ? "אין הרשאה" : message }, { status });
   }
 }

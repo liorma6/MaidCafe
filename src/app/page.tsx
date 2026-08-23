@@ -1,12 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import AnnouncementCard from "@/components/AnnouncementCard";
-import { readContent } from "@/lib/data";
+import { getAnnouncements } from "@/lib/db/announcements";
 import { SITE_TAGLINE } from "@/lib/constants";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
-  const content = await readContent();
-  const announcements = content.announcements.filter((a) => a.active);
+  const announcements = await getAnnouncements(true);
 
   return (
     <div className="space-y-10">
@@ -27,7 +28,7 @@ export default async function HomePage() {
         <p className="mt-3 text-lg text-pink-500">{SITE_TAGLINE}</p>
         <p className="mx-auto mt-4 max-w-xl text-pink-800/70">
           מייד קפה ישראלי בקונספט יפני — אנחנו מגיעים לאירועים, פסטיבלים וכנסים
-          עם חוויה מתוקה, קawaii ומלאה בקסם! ♡
+          עם חוויה מתוקה, kawaii ומלאה בקסם! ♡
         </p>
       </section>
 

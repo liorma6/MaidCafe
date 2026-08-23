@@ -1,9 +1,14 @@
 import Image from "next/image";
-import { readContent } from "@/lib/data";
+import { getEvents } from "@/lib/db/events";
+
+export const dynamic = "force-dynamic";
+
+function isRemoteImage(src: string): boolean {
+  return src.startsWith("http://") || src.startsWith("https://");
+}
 
 export default async function EventsPage() {
-  const content = await readContent();
-  const events = content.events;
+  const events = await getEvents();
 
   return (
     <div className="space-y-8">
@@ -48,6 +53,7 @@ export default async function EventsPage() {
                       fill
                       className="object-cover transition hover:scale-110"
                       sizes="(max-width: 768px) 50vw, 25vw"
+                      unoptimized={isRemoteImage(img)}
                     />
                   </div>
                 ))}

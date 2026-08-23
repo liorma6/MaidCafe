@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
 import { requireAdmin } from "@/lib/auth";
-import { readContent, writeContent } from "@/lib/data";
+import {
+  createEvent,
+  deleteEvent,
+  getEvents,
+  updateEvent,
+} from "@/lib/db/events";
 
 export async function GET() {
-  const content = await readContent();
-  return NextResponse.json(content.events);
+  try {
+    const events = await getEvents();
+    return NextResponse.json(events);
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "שגיאת שרת" },
+      { status: 500 },
+    );
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -21,20 +32,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "נא למלא שם אירוע" }, { status: 400 });
     }
 
-    const siteContent = await readContent();
-    const event = {
-      id: uuidv4(),
+    const event = await createEvent({
       title: title.trim(),
       date: date || new Date().toISOString().split("T")[0],
-      description: description?.trim() || "",
-      images: [] as string[],
-    };
+      description: description?.trim(),
+    });
 
-    siteContent.events.unshift(event);
-    await writeContent(siteContent);
     return NextResponse.json(event);
-  } catch {
-    return NextResponse.json({ error: "אין הרשאה" }, { status: 401 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "שגיאת שרת";
+    const status = message === "Unauthorized" ? 401 : 500;
+    return NextResponse.json({ error: status === 401 ? "אין הרשאה" : message }, { status });
   }
 }
 
@@ -46,12 +54,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "חסר מזהה" }, { status: 400 });
     }
 
-    const siteContent = await readContent();
-    siteContent.events = siteContent.events.filter((e) => e.id !== id);
-    await writeContent(siteContent);
+    await deleteEvent(id);
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "אין הרשאה" }, { status: 401 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "שגיאת שרת";
+    const status = message === "Unauthorized" ? 401 : 500;
+    return NextResponse.json({ error: status === 401 ? "אין הרשאה" : message }, { status });
   }
 }
 
@@ -69,19 +77,16 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "חסר מזהה" }, { status: 400 });
     }
 
-    const siteContent = await readContent();
-    const event = siteContent.events.find((e) => e.id === id);
-    if (!event) {
-      return NextResponse.json({ error: "אירוע לא נמצא" }, { status: 404 });
-    }
+    const event = await updateEvent(id, {
+      title: title?.trim(),
+      date,
+      description,
+    });
 
-    if (title) event.title = title.trim();
-    if (date) event.date = date;
-    if (description !== undefined) event.description = description.trim();
-
-    await writeContent(siteContent);
     return NextResponse.json(event);
-  } catch {
-    return NextResponse.json({ error: "אין הרשאה" }, { status: 401 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "שגיאת שרת";
+    const status = message === "Unauthorized" ? 401 : 500;
+    return NextResponse.json({ error: status === 401 ? "אין הרשאה" : message }, { status });
   }
 }

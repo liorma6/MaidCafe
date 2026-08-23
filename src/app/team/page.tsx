@@ -1,8 +1,10 @@
 import TeamCard from "@/components/TeamCard";
-import { readContent } from "@/lib/data";
+import { getTeamMembers } from "@/lib/db/team";
+
+export const dynamic = "force-dynamic";
 
 export default async function TeamPage() {
-  const content = await readContent();
+  const team = await getTeamMembers();
 
   return (
     <div className="space-y-8">
@@ -16,7 +18,7 @@ export default async function TeamPage() {
       </div>
 
       <div className="grid gap-8 sm:grid-cols-2">
-        {content.team.map((member) => (
+        {team.map((member) => (
           <TeamCard key={member.id} member={member} />
         ))}
       </div>

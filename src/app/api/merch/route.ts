@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
 import { requireAdmin } from "@/lib/auth";
-import { readContent, writeContent } from "@/lib/data";
+import {
+  createMerch,
+  deleteMerch,
+  getMerch,
+  updateMerch,
+} from "@/lib/db/merch";
 
 export async function GET() {
-  const content = await readContent();
-  return NextResponse.json(content.merch);
+  try {
+    const merch = await getMerch();
+    return NextResponse.json(merch);
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "שגיאת שרת" },
+      { status: 500 },
+    );
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -21,21 +32,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "נא למלא שם מוצר" }, { status: 400 });
     }
 
-    const siteContent = await readContent();
-    const item = {
-      id: uuidv4(),
+    const item = await createMerch({
       title: title.trim(),
-      description: description?.trim() || "",
-      price: price?.trim() || "",
-      image: "",
-      available: true,
-    };
+      description: description?.trim(),
+      price: price?.trim(),
+    });
 
-    siteContent.merch.unshift(item);
-    await writeContent(siteContent);
     return NextResponse.json(item);
-  } catch {
-    return NextResponse.json({ error: "אין הרשאה" }, { status: 401 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "שגיאת שרת";
+    const status = message === "Unauthorized" ? 401 : 500;
+    return NextResponse.json({ error: status === 401 ? "אין הרשאה" : message }, { status });
   }
 }
 
@@ -47,12 +54,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "חסר מזהה" }, { status: 400 });
     }
 
-    const siteContent = await readContent();
-    siteContent.merch = siteContent.merch.filter((m) => m.id !== id);
-    await writeContent(siteContent);
+    await deleteMerch(id);
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "אין הרשאה" }, { status: 401 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "שגיאת שרת";
+    const status = message === "Unauthorized" ? 401 : 500;
+    return NextResponse.json({ error: status === 401 ? "אין הרשאה" : message }, { status });
   }
 }
 
@@ -71,20 +78,17 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "חסר מזהה" }, { status: 400 });
     }
 
-    const siteContent = await readContent();
-    const item = siteContent.merch.find((m) => m.id === id);
-    if (!item) {
-      return NextResponse.json({ error: "מוצר לא נמצא" }, { status: 404 });
-    }
+    const item = await updateMerch(id, {
+      title: title?.trim(),
+      description,
+      price,
+      available,
+    });
 
-    if (title) item.title = title.trim();
-    if (description !== undefined) item.description = description.trim();
-    if (price !== undefined) item.price = price.trim();
-    if (available !== undefined) item.available = available;
-
-    await writeContent(siteContent);
     return NextResponse.json(item);
-  } catch {
-    return NextResponse.json({ error: "אין הרשאה" }, { status: 401 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "שגיאת שרת";
+    const status = message === "Unauthorized" ? 401 : 500;
+    return NextResponse.json({ error: status === 401 ? "אין הרשאה" : message }, { status });
   }
 }

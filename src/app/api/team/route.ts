@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { readContent, writeContent } from "@/lib/data";
+import { getTeamMembers, updateTeamMember } from "@/lib/db/team";
 
 export async function GET() {
-  const content = await readContent();
-  return NextResponse.json(content.team);
+  try {
+    const team = await getTeamMembers();
+    return NextResponse.json(team);
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "שגיאת שרת" },
+      { status: 500 },
+    );
+  }
 }
 
 export async function PATCH(request: NextRequest) {
@@ -21,19 +28,16 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "חסר מזהה" }, { status: 400 });
     }
 
-    const siteContent = await readContent();
-    const member = siteContent.team.find((t) => t.id === id);
-    if (!member) {
-      return NextResponse.json({ error: "חבר צוות לא נמצא" }, { status: 404 });
-    }
+    const member = await updateTeamMember(id, {
+      name: name?.trim(),
+      role: role?.trim(),
+      catchphrase: catchphrase?.trim(),
+    });
 
-    if (name) member.name = name.trim();
-    if (role) member.role = role.trim();
-    if (catchphrase) member.catchphrase = catchphrase.trim();
-
-    await writeContent(siteContent);
     return NextResponse.json(member);
-  } catch {
-    return NextResponse.json({ error: "אין הרשאה" }, { status: 401 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "שגיאת שרת";
+    const status = message === "Unauthorized" ? 401 : 500;
+    return NextResponse.json({ error: status === 401 ? "אין הרשאה" : message }, { status });
   }
 }

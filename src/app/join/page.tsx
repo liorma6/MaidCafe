@@ -1,4 +1,4 @@
-import JobApplicationForm from "@/components/JobApplicationForm";
+import GoogleFormEmbed from "@/components/GoogleFormEmbed";
 
 export default function JoinPage() {
   return (
@@ -8,11 +8,11 @@ export default function JoinPage() {
           בואו לעבוד איתנו
         </h1>
         <p className="mt-3 text-pink-500">
-          רוצים להצטרף לצוות? נשמח לשמוע מכם! ♡
+          רוצים להצטרף לצוות? מלאו את הטופס ונחזור אליכם! ♡
         </p>
       </div>
 
-      <JobApplicationForm />
+      <GoogleFormEmbed />
 
       <div className="kawaii-card mx-auto max-w-lg p-6 text-center">
         <p className="text-sm text-pink-600">

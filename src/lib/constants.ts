@@ -15,3 +15,8 @@ export const SOCIAL_LINKS = {
   facebook: "https://www.facebook.com/share/19Pq4125Pa/",
   email: "mailto:Uniquemaidcafe@gmail.com",
 } as const;
+
+export const GOOGLE_FORM_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSfEsP-ElFAKxBYrjtYYzGYNDq6waPqRCYWlVDMi7FFwQ59-ZQ/viewform";
+
+export const GOOGLE_FORM_EMBED_URL = `${GOOGLE_FORM_URL}?embedded=true`;

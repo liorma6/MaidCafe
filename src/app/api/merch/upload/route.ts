@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { v4 as uuidv4 } from "uuid";
 import { requireAdmin } from "@/lib/auth";
-import { readContent, writeContent } from "@/lib/data";
+import { updateMerch } from "@/lib/db/merch";
+import { uploadImage } from "@/lib/storage";
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,25 +14,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "חסרים נתונים" }, { status: 400 });
     }
 
-    const siteContent = await readContent();
-    const item = siteContent.merch.find((m) => m.id === merchId);
-    if (!item) {
-      return NextResponse.json({ error: "מוצר לא נמצא" }, { status: 404 });
-    }
-
-    const ext = path.extname(file.name) || ".jpg";
-    const filename = `${uuidv4()}${ext}`;
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "merch");
-    await mkdir(uploadDir, { recursive: true });
-
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(path.join(uploadDir, filename), buffer);
-
-    item.image = `/uploads/merch/${filename}`;
-    await writeContent(siteContent);
+    const imageUrl = await uploadImage("merch", file);
+    const item = await updateMerch(merchId, { image: imageUrl });
 
     return NextResponse.json({ item });
-  } catch {
-    return NextResponse.json({ error: "אין הרשאה" }, { status: 401 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "שגיאת שרת";
+    const status = message === "Unauthorized" ? 401 : 500;
+    return NextResponse.json({ error: status === 401 ? "אין הרשאה" : message }, { status });
   }
 }

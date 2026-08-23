@@ -4,12 +4,11 @@ import { useState } from "react";
 import type {
   Announcement,
   EventAlbum,
-  JobApplication,
   MerchItem,
   TeamMember,
 } from "@/lib/types";
 
-type Tab = "announcements" | "events" | "merch" | "team" | "applications";
+type Tab = "announcements" | "events" | "merch" | "team";
 
 interface AdminPanelProps {
   initialData: {
@@ -17,7 +16,6 @@ interface AdminPanelProps {
     events: EventAlbum[];
     merch: MerchItem[];
     team: TeamMember[];
-    applications: JobApplication[];
   };
   adminEmail: string;
 }
@@ -43,7 +41,6 @@ export default function AdminPanel({ initialData, adminEmail }: AdminPanelProps)
     { id: "events", label: "אירועים", emoji: "📸" },
     { id: "merch", label: "מרצ׳", emoji: "🛍️" },
     { id: "team", label: "צוות", emoji: "♡" },
-    { id: "applications", label: "מועמדויות", emoji: "📝" },
   ];
 
   return (
@@ -116,9 +113,6 @@ export default function AdminPanel({ initialData, adminEmail }: AdminPanelProps)
           setData={setData}
           showMessage={showMessage}
         />
-      )}
-      {tab === "applications" && (
-        <ApplicationsTab applications={data.applications} />
       )}
     </div>
   );
@@ -599,47 +593,6 @@ function TeamTab({
                 עריכה
               </button>
             </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function ApplicationsTab({
-  applications,
-}: {
-  applications: JobApplication[];
-}) {
-  if (applications.length === 0) {
-    return (
-      <p className="text-center text-pink-500">אין מועמדויות עדיין</p>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      {applications.map((app) => (
-        <div key={app.id} className="kawaii-card p-4">
-          <div className="flex items-start justify-between">
-            <h3 className="font-bold text-pink-700">{app.fullName}</h3>
-            <span className="text-xs text-pink-400">
-              {new Date(app.createdAt).toLocaleDateString("he-IL")}
-            </span>
-          </div>
-          <p className="text-sm text-pink-600">
-            {app.email} · {app.phone}
-            {app.age && ` · גיל ${app.age}`}
-          </p>
-          {app.experience && (
-            <p className="mt-2 text-sm text-pink-800/70">
-              <strong>ניסיון:</strong> {app.experience}
-            </p>
-          )}
-          {app.message && (
-            <p className="mt-1 text-sm text-pink-800/70">
-              <strong>הודעה:</strong> {app.message}
-            </p>
           )}
         </div>
       ))}

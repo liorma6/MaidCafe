@@ -1,10 +1,15 @@
 import Image from "next/image";
-import { readContent } from "@/lib/data";
+import { getMerch } from "@/lib/db/merch";
 import { SOCIAL_LINKS } from "@/lib/constants";
 
+export const dynamic = "force-dynamic";
+
+function isRemoteImage(src: string): boolean {
+  return src.startsWith("http://") || src.startsWith("https://");
+}
+
 export default async function MerchPage() {
-  const content = await readContent();
-  const merch = content.merch.filter((m) => m.available);
+  const merch = await getMerch(true);
 
   return (
     <div className="space-y-8">
@@ -42,6 +47,7 @@ export default async function MerchPage() {
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, 50vw"
+                    unoptimized={isRemoteImage(item.image)}
                   />
                 </div>
               ) : (

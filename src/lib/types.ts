@@ -31,21 +31,9 @@ export interface TeamMember {
   image: string;
 }
 
-export interface JobApplication {
-  id: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  age: string;
-  experience: string;
-  message: string;
-  createdAt: string;
-}
-
-export interface SiteContent {
+export interface AdminContent {
   announcements: Announcement[];
   events: EventAlbum[];
   merch: MerchItem[];
   team: TeamMember[];
-  applications: JobApplication[];
 }
