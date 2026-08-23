@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Unique Maid Cafe ♡
 
-## Getting Started
+אתר בעברית (RTL) למייד קפה ישראלי בקונספט יפני — פופ-אפים באירועים.
 
-First, run the development server:
+## הרצה מקומית
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+פתחו [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## דפים
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **עמוד הבית** — הודעות חשובות
+- **אירועים שהיו** — גalerיית תמונות מאירועים
+- **מידע על הצוות** — פרופילי הצוות
+- **בואו לעבוד איתנו** — טופס הצטרפות
+- **מכירת המרצ׳ שלנו** — מוצרים
 
-## Learn More
+## פאנל ניהול
 
-To learn more about Next.js, take a look at the following resources:
+כניסה דרך הקישור הקטן בתחתית האתר (`/admin`).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**מיילים מורשים:**
+- Emmaliz.star@gmail.com
+- Tav.chan.ferzig@gmail.com
+- Uniquemaidcafe@gmail.com
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**סיסמה:** `maidcafe1234`
 
-## Deploy on Vercel
+מהפאנל אפשר:
+- לפרסם הודעות בדף הבית
+- ליצור אירועים ולהעלות תמונות
+- להוסיף מוצרי מרצ׳ עם תמונות
+- לערוך פרטי צוות
+- לצפות במועמדויות מהטופס
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## פריסה (Deployment)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+לאחסון קבוע של תמונות שהועלו דרך הפאנל, מומלץ לפרוס על שרת עם דיסק קבוע (Railway, Render, VPS).
+ב-Vercel (serverless) העלאות לא יישמרו בין deployments.
+
+## משתני סביבה (אופציונלי)
+
+```env
+ADMIN_PASSWORD=maidcafe1234
+SESSION_SECRET=your-secret-key
+```
