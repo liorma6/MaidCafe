@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect } from "react";
-import { isRemoteImage } from "@/lib/image-utils";
 
 interface Props {
   images: string[];
@@ -33,8 +32,8 @@ export default function ImageLightbox({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
-      if (e.key === "ArrowLeft") goNext();
-      if (e.key === "ArrowRight") goPrev();
+      if (e.key === "ArrowLeft") goPrev();
+      if (e.key === "ArrowRight") goNext();
     };
     window.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -70,10 +69,10 @@ export default function ImageLightbox({
             e.stopPropagation();
             goPrev();
           }}
-          className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 px-3 py-4 text-2xl text-pink-700 shadow-lg hover:bg-white sm:right-4"
+          className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 px-3 py-4 text-2xl text-pink-700 shadow-lg hover:bg-white sm:left-4"
           aria-label="תמונה קודמת"
         >
-          ›
+          ‹
         </button>
       )}
 
@@ -84,10 +83,10 @@ export default function ImageLightbox({
             e.stopPropagation();
             goNext();
           }}
-          className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 px-3 py-4 text-2xl text-pink-700 shadow-lg hover:bg-white sm:left-4"
+          className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 px-3 py-4 text-2xl text-pink-700 shadow-lg hover:bg-white sm:right-4"
           aria-label="תמונה הבאה"
         >
-          ‹
+          ›
         </button>
       )}
 
@@ -103,7 +102,10 @@ export default function ImageLightbox({
           decoding="async"
         />
         {images.length > 1 && (
-          <p className="mt-3 rounded-full bg-white/90 px-4 py-1 text-sm font-semibold text-pink-700">
+          <p
+            dir="ltr"
+            className="mt-3 rounded-full bg-white/90 px-4 py-1 text-sm font-semibold text-pink-700"
+          >
             {currentIndex + 1} / {images.length}
           </p>
         )}
