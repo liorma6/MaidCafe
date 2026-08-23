@@ -44,17 +44,26 @@ export default function EventHeadApron({ className = "" }: Props) {
         {/* Bow knot */}
         <ellipse cx="60" cy="12" rx="4.5" ry="3.5" fill="#ff69b4" />
 
-        {/* White frill band */}
+        {/* White frill band — wraps onto the egg top */}
         <path
-          d="M12 18 H108 V26 C108 30 104 32 100 29 C96 33 92 29 88 32 C84 29 80 33 76 30 C72 33 68 29 64 32 C60 29 56 33 52 30 C48 33 44 29 40 32 C36 29 32 33 28 30 C24 33 20 29 16 32 C12 30 12 26 12 22 Z"
+          d="M10 20 H110 V28 C110 33 105 35 100 32 C95 36 90 32 85 35 C80 32 75 36 70 33 C65 36 60 32 55 35 C50 32 45 36 40 33 C35 36 30 32 25 35 C20 32 15 36 10 33 C10 33 10 28 10 24 Z"
           fill="#ffffff"
-          stroke="#ffb8d0"
-          strokeWidth="1.2"
+          stroke="#ff85c1"
+          strokeWidth="1.4"
+        />
+
+        {/* Band shadow where it meets the egg */}
+        <path
+          d="M14 32 Q60 38 106 32"
+          fill="none"
+          stroke="rgba(255, 105, 180, 0.35)"
+          strokeWidth="2"
+          strokeLinecap="round"
         />
 
         {/* Lace scallops along bottom of band */}
         <path
-          d="M16 30 Q20 34 24 30 Q28 34 32 30 Q36 34 40 30 Q44 34 48 30 Q52 34 56 30 Q60 34 64 30 Q68 34 72 30 Q76 34 80 30 Q84 34 88 30 Q92 34 96 30 Q100 34 104 30"
+          d="M14 33 Q18 37 22 33 Q26 37 30 33 Q34 37 38 33 Q42 37 46 33 Q50 37 54 33 Q58 37 62 33 Q66 37 70 33 Q74 37 78 33 Q82 37 86 33 Q90 37 94 33 Q98 37 102 33 Q106 37 110 33"
           fill="none"
           stroke="#ffd6e7"
           strokeWidth="1.5"
@@ -62,11 +71,11 @@ export default function EventHeadApron({ className = "" }: Props) {
         />
 
         {/* Tiny lace dots */}
-        <circle cx="24" cy="24" r="1.2" fill="#ffe0ec" />
-        <circle cx="40" cy="24" r="1.2" fill="#ffe0ec" />
-        <circle cx="56" cy="24" r="1.2" fill="#ffe0ec" />
-        <circle cx="72" cy="24" r="1.2" fill="#ffe0ec" />
-        <circle cx="88" cy="24" r="1.2" fill="#ffe0ec" />
+        <circle cx="24" cy="26" r="1.2" fill="#ffe0ec" />
+        <circle cx="40" cy="26" r="1.2" fill="#ffe0ec" />
+        <circle cx="56" cy="26" r="1.2" fill="#ffe0ec" />
+        <circle cx="72" cy="26" r="1.2" fill="#ffe0ec" />
+        <circle cx="88" cy="26" r="1.2" fill="#ffe0ec" />
       </svg>
     </div>
   );

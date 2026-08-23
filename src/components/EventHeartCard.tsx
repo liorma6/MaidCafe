@@ -19,8 +19,8 @@ export default function EventHeartCard({ event }: Props) {
       href={`/events/${event.id}`}
       className="event-heart-card group mx-auto block w-full max-w-sm transition hover:scale-[1.02]"
     >
-      <div className="event-heart-card-shell relative pt-6">
-        <EventHeadApron className="absolute left-1/2 top-0 z-20 -translate-x-1/2" />
+      <div className="event-heart-card-shell relative">
+        <EventHeadApron />
 
         <div className="heart-shape relative aspect-[1/1.05] overflow-hidden bg-pink-50">
           <div className="checkered-bg absolute inset-0 opacity-25" />
