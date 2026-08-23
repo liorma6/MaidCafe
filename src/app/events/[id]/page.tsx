@@ -1,9 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
+import EventDetailContent from "@/components/EventDetailContent";
 import { getEventById } from "@/lib/db/events";
 import { formatEventDateRange } from "@/lib/date-utils";
-import { isRemoteImage } from "@/lib/image-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -18,8 +17,6 @@ export default async function EventDetailPage({ params }: Props) {
   if (!event) notFound();
 
   const formattedDate = formatEventDateRange(event.date, event.endDate);
-  const hasMedia =
-    event.images.length > 0 || event.videos.length > 0 || event.coverImage;
 
   return (
     <div className="space-y-8">
@@ -30,87 +27,7 @@ export default async function EventDetailPage({ params }: Props) {
         → חזרה לאלבומים
       </Link>
 
-      <header className="space-y-4">
-        {event.coverImage && (
-          <div className="relative mx-auto aspect-[4/5] w-full max-w-2xl overflow-hidden rounded-2xl border-4 border-pink-200 bg-pink-50 sm:aspect-[3/4]">
-            <Image
-              src={event.coverImage}
-              alt={event.title}
-              fill
-              className="object-contain p-2"
-              priority
-              sizes="(max-width: 768px) 100vw, 672px"
-              unoptimized={isRemoteImage(event.coverImage)}
-            />
-          </div>
-        )}
-        <div>
-          <h1 className="text-2xl font-bold text-pink-700 md:text-3xl">
-            {event.title}
-          </h1>
-          <p className="mt-1 text-sm text-pink-400">{formattedDate}</p>
-          {event.description && (
-            <p className="mt-3 leading-relaxed text-pink-800/80">
-              {event.description}
-            </p>
-          )}
-        </div>
-      </header>
-
-      {event.videos.length > 0 && (
-        <section>
-          <h2 className="mb-4 text-lg font-bold text-pink-700">
-            סרטונים ({event.videos.length})
-          </h2>
-          <div className="grid gap-4">
-            {event.videos.map((video) => (
-              <div
-                key={video}
-                className="overflow-hidden rounded-2xl border-4 border-pink-200 bg-black"
-              >
-                <video
-                  src={video}
-                  controls
-                  playsInline
-                  preload="metadata"
-                  className="aspect-video w-full"
-                />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {event.images.length > 0 && (
-        <section>
-          <h2 className="mb-4 text-lg font-bold text-pink-700">
-            תמונות ({event.images.length})
-          </h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {event.images.map((img) => (
-              <div
-                key={img}
-                className="relative aspect-[4/5] overflow-hidden rounded-xl border-2 border-pink-200 bg-pink-50"
-              >
-                <Image
-                  src={img}
-                  alt={event.title}
-                  fill
-                  className="object-contain p-1"
-                  sizes="(max-width: 768px) 50vw, 33vw"
-                  unoptimized={isRemoteImage(img)}
-                />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {!hasMedia && (
-        <div className="kawaii-card p-8 text-center text-pink-400">
-          אין תמונות או סרטונים באלבום זה עדיין
-        </div>
-      )}
+      <EventDetailContent event={event} formattedDate={formattedDate} />
     </div>
   );
 }
