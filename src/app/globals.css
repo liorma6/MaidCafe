@@ -431,7 +431,6 @@ html.a11y-high-contrast img {
 /* Maid head apron on event egg cards */
 .event-heart-card-shell {
   position: relative;
-  padding-top: 1.25rem;
 }
 
 .event-head-apron {
@@ -442,13 +441,17 @@ html.a11y-high-contrast img {
   width: 100%;
   display: flex;
   justify-content: center;
-  transform: translateX(-50%) translateY(46%);
+  transform: translateX(-50%) translateY(0);
+}
+
+.event-heart-card-shell > .heart-shape {
+  margin-top: 3.5rem;
 }
 
 .event-head-apron-img {
-  width: 58%;
-  min-width: 112px;
-  max-width: 176px;
+  width: 52%;
+  min-width: 100px;
+  max-width: 160px;
   height: auto;
   filter: drop-shadow(0 2px 5px rgba(255, 105, 180, 0.35));
 }
