@@ -39,6 +39,14 @@ create table if not exists event_images (
   created_at timestamptz not null default now()
 );
 
+create table if not exists event_videos (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references events(id) on delete cascade,
+  url text not null,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists merch (
   id uuid primary key default gen_random_uuid(),
   title text not null,
@@ -73,6 +81,7 @@ create table if not exists partnerships (
 
 -- ── 3. Indexes ──────────────────────────────────────────────
 create index if not exists idx_event_images_event_id on event_images(event_id);
+create index if not exists idx_event_videos_event_id on event_videos(event_id);
 create index if not exists idx_announcements_active on announcements(active);
 
 -- ── 4. Seed data (only if empty) ─────────────────────────────
@@ -104,6 +113,7 @@ update team_members set chibi_image = '/images/team/chibi/team-5-chibi.png' wher
 alter table announcements enable row level security;
 alter table events enable row level security;
 alter table event_images enable row level security;
+alter table event_videos enable row level security;
 alter table merch enable row level security;
 alter table team_members enable row level security;
 alter table partnerships enable row level security;
@@ -123,6 +133,12 @@ create policy "events_public_read"
 drop policy if exists "event_images_public_read" on event_images;
 create policy "event_images_public_read"
   on event_images for select
+  to anon, authenticated
+  using (true);
+
+drop policy if exists "event_videos_public_read" on event_videos;
+create policy "event_videos_public_read"
+  on event_videos for select
   to anon, authenticated
   using (true);
 

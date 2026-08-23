@@ -7,5 +7,5 @@ export function getEventDisplayCover(event: EventAlbum): string | null {
 }
 
 export function getEventPhotoCount(event: EventAlbum): number {
-  return event.images.length + (event.coverImage ? 1 : 0);
+  return event.images.length + event.videos.length + (event.coverImage ? 1 : 0);
 }

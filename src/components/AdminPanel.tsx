@@ -246,12 +246,14 @@ function EventsTab({
   const [description, setDescription] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
   const uploadFiles = async (
     eventId: string,
     cover: File | null,
     gallery: File[],
+    videos: File[],
   ): Promise<EventAlbum | null> => {
     let latest: EventAlbum | null = null;
 
@@ -279,6 +281,21 @@ function EventsTab({
       }
     }
 
+    for (const file of videos) {
+      const formData = new FormData();
+      formData.append("eventId", eventId);
+      formData.append("file", file);
+      formData.append("type", "video");
+      const res = await fetch("/api/events/upload", { method: "POST", body: formData });
+      if (res.ok) {
+        const data = await res.json();
+        latest = data.event;
+      } else {
+        const data = await res.json();
+        showMessage(data.error || "שגיאה בהעלאת סרטון");
+      }
+    }
+
     return latest;
   };
 
@@ -294,7 +311,12 @@ function EventsTab({
 
     if (res.ok) {
       let item: EventAlbum = await res.json();
-      const withImages = await uploadFiles(item.id, coverFile, galleryFiles);
+      const withImages = await uploadFiles(
+        item.id,
+        coverFile,
+        galleryFiles,
+        videoFiles,
+      );
       if (withImages) item = withImages;
 
       setData((d) => ({ ...d, events: [item, ...d.events] }));
@@ -304,6 +326,7 @@ function EventsTab({
       setDescription("");
       setCoverFile(null);
       setGalleryFiles([]);
+      setVideoFiles([]);
       setCoverPreview(null);
       showMessage("אירוע נוצר בהצלחה! ♡");
     } else {
@@ -322,7 +345,7 @@ function EventsTab({
   const handleUpload = async (
     eventId: string,
     file: File,
-    type: "cover" | "gallery",
+    type: "cover" | "gallery" | "video",
   ) => {
     const formData = new FormData();
     formData.append("eventId", eventId);
@@ -338,7 +361,35 @@ function EventsTab({
         ...d,
         events: d.events.map((e) => (e.id === eventId ? event : e)),
       }));
-      showMessage(type === "cover" ? "תמונה ראשית הועלתה! ♡" : "תמונה הועלתה! ♡");
+      showMessage(
+        type === "cover"
+          ? "תמונה ראשית הועלתה! ♡"
+          : type === "video"
+            ? "סרטון הועלה! ♡"
+            : "תמונה הועלתה! ♡",
+      );
+    } else {
+      const data = await res.json();
+      showMessage(data.error || "שגיאה בהעלאה");
+    }
+  };
+
+  const handleRemoveVideo = async (eventId: string, videoUrl: string) => {
+    const res = await fetch("/api/events/upload", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ eventId, imagePath: videoUrl, type: "video" }),
+    });
+    if (res.ok) {
+      setData((d) => ({
+        ...d,
+        events: d.events.map((e) =>
+          e.id === eventId
+            ? { ...e, videos: e.videos.filter((v) => v !== videoUrl) }
+            : e,
+        ),
+      }));
+      showMessage("סרטון הוסר");
     }
   };
 
@@ -475,6 +526,20 @@ function EventsTab({
                 : undefined
             }
           />
+
+          <FileUploadButton
+            label="🎬 סרטונים"
+            hint="MP4, WebM או MOV — אפשר כמה"
+            accept="video/mp4,video/webm,video/quicktime,video/*"
+            multiple
+            variant="secondary"
+            onChange={setVideoFiles}
+            selectedLabel={
+              videoFiles.length > 0
+                ? `נבחרו ${videoFiles.length} סרטונים`
+                : undefined
+            }
+          />
         </div>
 
         <button type="submit" disabled={loading} className="admin-btn">
@@ -510,7 +575,7 @@ function EventsTab({
                   <p className="mt-1 text-sm text-pink-800/70">{event.description}</p>
                 )}
                 <p className="mt-1 text-xs text-pink-400">
-                  {event.images.length} תמונות בגלריה
+                  {event.images.length} תמונות · {event.videos.length} סרטונים
                 </p>
               </div>
             </div>
@@ -530,6 +595,22 @@ function EventsTab({
                 alt=""
                 className="h-20 w-20 rounded-lg border border-pink-200 object-cover"
               />
+            ))}
+            {event.videos.map((video) => (
+              <div
+                key={video}
+                className="relative h-20 w-20 overflow-hidden rounded-lg border border-pink-200 bg-pink-900"
+              >
+                <video
+                  src={video}
+                  className="h-full w-full object-cover"
+                  muted
+                  playsInline
+                />
+                <span className="absolute inset-0 flex items-center justify-center bg-black/30 text-lg text-white">
+                  ▶
+                </span>
+              </div>
             ))}
           </div>
 
@@ -555,6 +636,18 @@ function EventsTab({
                 }}
               />
             </div>
+            <div className="min-w-[220px] flex-1">
+              <FileUploadButton
+                label="🎬 סרטונים"
+                hint="MP4, WebM או MOV"
+                accept="video/mp4,video/webm,video/quicktime,video/*"
+                multiple
+                variant="secondary"
+                onChange={(files) => {
+                  files.forEach((f) => handleUpload(event.id, f, "video"));
+                }}
+              />
+            </div>
             {event.coverImage && (
               <button
                 type="button"
@@ -565,6 +658,26 @@ function EventsTab({
               </button>
             )}
           </div>
+
+          {event.videos.length > 0 && (
+            <div className="mt-4 space-y-2">
+              <p className="text-xs font-semibold text-pink-500">סרטונים:</p>
+              <div className="flex flex-wrap gap-2">
+                {event.videos.map((video) => (
+                  <div key={video} className="flex items-center gap-2 rounded-lg bg-pink-50 px-3 py-2">
+                    <span className="text-sm text-pink-700">🎬 סרטון</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveVideo(event.id, video)}
+                      className="text-xs text-red-400 hover:text-red-600"
+                    >
+                      הסר
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ))}
     </div>

@@ -14,6 +14,7 @@ export interface EventAlbum {
   description?: string;
   coverImage: string;
   images: string[];
+  videos: string[];
 }
 
 export interface MerchItem {

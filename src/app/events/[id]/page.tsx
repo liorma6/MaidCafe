@@ -18,6 +18,8 @@ export default async function EventDetailPage({ params }: Props) {
   if (!event) notFound();
 
   const formattedDate = formatEventDateRange(event.date, event.endDate);
+  const hasMedia =
+    event.images.length > 0 || event.videos.length > 0 || event.coverImage;
 
   return (
     <div className="space-y-8">
@@ -55,7 +57,31 @@ export default async function EventDetailPage({ params }: Props) {
         </div>
       </header>
 
-      {event.images.length > 0 ? (
+      {event.videos.length > 0 && (
+        <section>
+          <h2 className="mb-4 text-lg font-bold text-pink-700">
+            סרטונים ({event.videos.length})
+          </h2>
+          <div className="grid gap-4">
+            {event.videos.map((video) => (
+              <div
+                key={video}
+                className="overflow-hidden rounded-2xl border-4 border-pink-200 bg-black"
+              >
+                <video
+                  src={video}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="aspect-video w-full"
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {event.images.length > 0 && (
         <section>
           <h2 className="mb-4 text-lg font-bold text-pink-700">
             תמונות ({event.images.length})
@@ -78,12 +104,12 @@ export default async function EventDetailPage({ params }: Props) {
             ))}
           </div>
         </section>
-      ) : (
-        !event.coverImage && (
-          <div className="kawaii-card p-8 text-center text-pink-400">
-            אין תמונות באלבום זה עדיין
-          </div>
-        )
+      )}
+
+      {!hasMedia && (
+        <div className="kawaii-card p-8 text-center text-pink-400">
+          אין תמונות או סרטונים באלבום זה עדיין
+        </div>
       )}
     </div>
   );

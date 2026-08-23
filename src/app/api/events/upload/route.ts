@@ -2,10 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import {
   addEventImage,
+  addEventVideo,
   removeEventImage,
+  removeEventVideo,
   updateEventCover,
 } from "@/lib/db/events";
-import { deleteImageByUrl, uploadImage } from "@/lib/storage";
+import { deleteImageByUrl, uploadImage, uploadVideo } from "@/lib/storage";
+
+const VIDEO_TYPES = new Set([
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+  "video/x-msvideo",
+]);
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,6 +26,18 @@ export async function POST(request: NextRequest) {
 
     if (!eventId || !file) {
       return NextResponse.json({ error: "חסרים נתונים" }, { status: 400 });
+    }
+
+    if (type === "video") {
+      if (!VIDEO_TYPES.has(file.type)) {
+        return NextResponse.json(
+          { error: "סוג קובץ לא נתמך — העלו MP4, WebM או MOV" },
+          { status: 400 },
+        );
+      }
+      const videoUrl = await uploadVideo("events-videos", file);
+      const event = await addEventVideo(eventId, videoUrl);
+      return NextResponse.json({ video: videoUrl, event });
     }
 
     const imageUrl = await uploadImage("events", file);
@@ -44,7 +65,7 @@ export async function DELETE(request: NextRequest) {
     const { eventId, imagePath, type } = (await request.json()) as {
       eventId?: string;
       imagePath?: string;
-      type?: "cover" | "gallery";
+      type?: "cover" | "gallery" | "video";
     };
 
     if (!eventId) {
@@ -61,7 +82,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "חסרים נתונים" }, { status: 400 });
     }
 
-    await removeEventImage(eventId, imagePath);
+    if (type === "video") {
+      await removeEventVideo(eventId, imagePath);
+    } else {
+      await removeEventImage(eventId, imagePath);
+    }
+
     await deleteImageByUrl(imagePath);
     return NextResponse.json({ success: true });
   } catch (error) {

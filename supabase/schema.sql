@@ -28,6 +28,14 @@ create table if not exists event_images (
   created_at timestamptz not null default now()
 );
 
+create table if not exists event_videos (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references events(id) on delete cascade,
+  url text not null,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists merch (
   id uuid primary key default gen_random_uuid(),
   title text not null,

@@ -10,7 +10,7 @@ type EventRow = {
   cover_image: string | null;
 };
 
-type EventImageRow = {
+type EventMediaRow = {
   id: string;
   event_id: string;
   url: string;
@@ -20,6 +20,7 @@ type EventImageRow = {
 function mapEvent(
   event: EventRow,
   images: string[],
+  videos: string[],
 ): EventAlbum {
   return {
     id: event.id,
@@ -29,12 +30,14 @@ function mapEvent(
     description: event.description || "",
     coverImage: event.cover_image || "",
     images,
+    videos,
   };
 }
 
-async function fetchEventsWithImages(): Promise<{
+async function fetchEventsWithMedia(): Promise<{
   events: EventRow[];
   imagesByEvent: Map<string, string[]>;
+  videosByEvent: Map<string, string[]>;
 }> {
   const supabase = getSupabaseAdmin();
   const { data: events, error: eventsError } = await supabase
@@ -43,31 +46,54 @@ async function fetchEventsWithImages(): Promise<{
     .order("date", { ascending: false });
 
   if (eventsError) throw new Error(eventsError.message);
-  if (!events?.length) return { events: [], imagesByEvent: new Map() };
+  if (!events?.length) {
+    return { events: [], imagesByEvent: new Map(), videosByEvent: new Map() };
+  }
 
   const eventIds = events.map((event) => event.id);
-  const { data: images, error: imagesError } = await supabase
-    .from("event_images")
-    .select("*")
-    .in("event_id", eventIds)
-    .order("sort_order", { ascending: true });
+
+  const [{ data: images, error: imagesError }, { data: videos, error: videosError }] =
+    await Promise.all([
+      supabase
+        .from("event_images")
+        .select("*")
+        .in("event_id", eventIds)
+        .order("sort_order", { ascending: true }),
+      supabase
+        .from("event_videos")
+        .select("*")
+        .in("event_id", eventIds)
+        .order("sort_order", { ascending: true }),
+    ]);
 
   if (imagesError) throw new Error(imagesError.message);
+  if (videosError) throw new Error(videosError.message);
 
   const imagesByEvent = new Map<string, string[]>();
-  for (const image of (images || []) as EventImageRow[]) {
+  for (const image of (images || []) as EventMediaRow[]) {
     const list = imagesByEvent.get(image.event_id) || [];
     list.push(image.url);
     imagesByEvent.set(image.event_id, list);
   }
 
-  return { events: events as EventRow[], imagesByEvent };
+  const videosByEvent = new Map<string, string[]>();
+  for (const video of (videos || []) as EventMediaRow[]) {
+    const list = videosByEvent.get(video.event_id) || [];
+    list.push(video.url);
+    videosByEvent.set(video.event_id, list);
+  }
+
+  return { events: events as EventRow[], imagesByEvent, videosByEvent };
 }
 
 export async function getEvents(): Promise<EventAlbum[]> {
-  const { events, imagesByEvent } = await fetchEventsWithImages();
+  const { events, imagesByEvent, videosByEvent } = await fetchEventsWithMedia();
   return events.map((event) =>
-    mapEvent(event, imagesByEvent.get(event.id) || []),
+    mapEvent(
+      event,
+      imagesByEvent.get(event.id) || [],
+      videosByEvent.get(event.id) || [],
+    ),
   );
 }
 
@@ -81,16 +107,26 @@ export async function getEventById(id: string): Promise<EventAlbum | null> {
 
   if (error || !event) return null;
 
-  const { data: images, error: imagesError } = await supabase
-    .from("event_images")
-    .select("*")
-    .eq("event_id", id)
-    .order("sort_order", { ascending: true });
+  const [{ data: images, error: imagesError }, { data: videos, error: videosError }] =
+    await Promise.all([
+      supabase
+        .from("event_images")
+        .select("*")
+        .eq("event_id", id)
+        .order("sort_order", { ascending: true }),
+      supabase
+        .from("event_videos")
+        .select("*")
+        .eq("event_id", id)
+        .order("sort_order", { ascending: true }),
+    ]);
 
   if (imagesError) throw new Error(imagesError.message);
+  if (videosError) throw new Error(videosError.message);
 
-  const gallery = ((images || []) as EventImageRow[]).map((img) => img.url);
-  return mapEvent(event as EventRow, gallery);
+  const gallery = ((images || []) as EventMediaRow[]).map((img) => img.url);
+  const videoList = ((videos || []) as EventMediaRow[]).map((vid) => vid.url);
+  return mapEvent(event as EventRow, gallery, videoList);
 }
 
 export async function createEvent(input: {
@@ -113,7 +149,7 @@ export async function createEvent(input: {
     .single();
 
   if (error) throw new Error(error.message);
-  return mapEvent(data as EventRow, []);
+  return mapEvent(data as EventRow, [], []);
 }
 
 export async function updateEvent(
@@ -163,24 +199,50 @@ export async function deleteEvent(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
-export async function addEventImage(
+async function getNextSortOrder(
+  table: "event_images" | "event_videos",
   eventId: string,
-  url: string,
-): Promise<EventAlbum> {
+): Promise<number> {
   const supabase = getSupabaseAdmin();
-  const { data: existing, error: countError } = await supabase
-    .from("event_images")
+  const { data: existing, error } = await supabase
+    .from(table)
     .select("sort_order")
     .eq("event_id", eventId)
     .order("sort_order", { ascending: false })
     .limit(1);
 
-  if (countError) throw new Error(countError.message);
+  if (error) throw new Error(error.message);
+  return existing && existing.length > 0 ? (existing[0].sort_order as number) + 1 : 0;
+}
 
-  const nextOrder =
-    existing && existing.length > 0 ? (existing[0].sort_order as number) + 1 : 0;
+export async function addEventImage(
+  eventId: string,
+  url: string,
+): Promise<EventAlbum> {
+  const supabase = getSupabaseAdmin();
+  const nextOrder = await getNextSortOrder("event_images", eventId);
 
   const { error } = await supabase.from("event_images").insert({
+    event_id: eventId,
+    url,
+    sort_order: nextOrder,
+  });
+
+  if (error) throw new Error(error.message);
+
+  const event = await getEventById(eventId);
+  if (!event) throw new Error("אירוע לא נמצא");
+  return event;
+}
+
+export async function addEventVideo(
+  eventId: string,
+  url: string,
+): Promise<EventAlbum> {
+  const supabase = getSupabaseAdmin();
+  const nextOrder = await getNextSortOrder("event_videos", eventId);
+
+  const { error } = await supabase.from("event_videos").insert({
     event_id: eventId,
     url,
     sort_order: nextOrder,
@@ -200,6 +262,20 @@ export async function removeEventImage(
   const supabase = getSupabaseAdmin();
   const { error } = await supabase
     .from("event_images")
+    .delete()
+    .eq("event_id", eventId)
+    .eq("url", url);
+
+  if (error) throw new Error(error.message);
+}
+
+export async function removeEventVideo(
+  eventId: string,
+  url: string,
+): Promise<void> {
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase
+    .from("event_videos")
     .delete()
     .eq("event_id", eventId)
     .eq("url", url);

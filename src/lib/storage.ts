@@ -6,18 +6,33 @@ export async function uploadImage(
   folder: "events" | "merch" | "team" | "team-chibi" | "partnerships",
   file: File,
 ): Promise<string> {
+  return uploadFile(folder, file, file.type || "image/jpeg");
+}
+
+export async function uploadVideo(
+  folder: "events-videos",
+  file: File,
+): Promise<string> {
+  return uploadFile(folder, file, file.type || "video/mp4");
+}
+
+async function uploadFile(
+  folder: string,
+  file: File,
+  contentType: string,
+): Promise<string> {
   const supabase = getSupabaseAdmin();
   const bucket = getStorageBucket();
   const ext = file.name.includes(".")
     ? file.name.slice(file.name.lastIndexOf("."))
-    : ".jpg";
+    : contentType.startsWith("video/") ? ".mp4" : ".jpg";
   const objectPath = `${folder}/${uuidv4()}${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error } = await supabase.storage
     .from(bucket)
     .upload(objectPath, buffer, {
-      contentType: file.type || "image/jpeg",
+      contentType: file.type || contentType,
       upsert: false,
     });
 
