@@ -294,62 +294,104 @@ html.a11y-high-contrast img {
 /* Chibi screen-edge peek */
 .chibi-screen-peek {
   opacity: 0;
+  will-change: transform, opacity;
 }
 
-.chibi-screen-peek-active.chibi-screen-peek-left {
-  animation: chibi-screen-from-left 3.5s ease-in-out forwards;
+.chibi-screen-peek-left {
+  left: 0;
 }
 
-.chibi-screen-peek-active.chibi-screen-peek-right {
-  animation: chibi-screen-from-right 3.5s ease-in-out forwards;
+.chibi-screen-peek-right {
+  right: 0;
 }
 
-@keyframes chibi-screen-from-left {
-  0% {
+.chibi-screen-peek-enter.chibi-screen-peek-left {
+  animation: chibi-enter-from-left 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.chibi-screen-peek-enter.chibi-screen-peek-right {
+  animation: chibi-enter-from-right 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.chibi-screen-peek-idle.chibi-screen-peek-left,
+.chibi-screen-peek-exit.chibi-screen-peek-left {
+  opacity: 1;
+  transform: translateX(1rem);
+}
+
+.chibi-screen-peek-idle.chibi-screen-peek-right,
+.chibi-screen-peek-exit.chibi-screen-peek-right {
+  opacity: 1;
+  transform: translateX(-1rem);
+}
+
+.chibi-screen-peek-idle .chibi-screen-peek-body {
+  animation: chibi-idle-bounce 0.55s ease-in-out infinite;
+}
+
+.chibi-screen-peek-exit.chibi-screen-peek-left {
+  animation: chibi-exit-to-left 0.38s ease-in forwards;
+}
+
+.chibi-screen-peek-exit.chibi-screen-peek-right {
+  animation: chibi-exit-to-right 0.38s ease-in forwards;
+}
+
+@keyframes chibi-enter-from-left {
+  from {
     opacity: 0;
-    transform: translateX(calc(-100% - 1rem)) translateY(8px) scale(0.9);
+    transform: translateX(calc(-100% - 2rem)) scale(0.88);
   }
-  12% {
+  to {
     opacity: 1;
-    transform: translateX(1rem) translateY(0) scale(1);
-  }
-  22% {
-    transform: translateX(1rem) translateY(-6px) scale(1.02);
-  }
-  32% {
-    transform: translateX(1rem) translateY(0) scale(1);
-  }
-  78% {
-    opacity: 1;
-    transform: translateX(1rem) translateY(0) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(calc(-100% - 1rem)) translateY(8px) scale(0.9);
+    transform: translateX(1rem) scale(1);
   }
 }
 
-@keyframes chibi-screen-from-right {
-  0% {
+@keyframes chibi-enter-from-right {
+  from {
     opacity: 0;
-    transform: translateX(calc(100% + 1rem)) translateY(8px) scale(0.9);
+    transform: translateX(calc(100% + 2rem)) scale(0.88);
   }
-  12% {
+  to {
     opacity: 1;
-    transform: translateX(-1rem) translateY(0) scale(1);
+    transform: translateX(-1rem) scale(1);
   }
-  22% {
-    transform: translateX(-1rem) translateY(-6px) scale(1.02);
-  }
-  32% {
-    transform: translateX(-1rem) translateY(0) scale(1);
-  }
-  78% {
+}
+
+@keyframes chibi-exit-to-left {
+  from {
     opacity: 1;
-    transform: translateX(-1rem) translateY(0) scale(1);
+    transform: translateX(1rem) scale(1);
   }
-  100% {
+  to {
     opacity: 0;
-    transform: translateX(calc(100% + 1rem)) translateY(8px) scale(0.9);
+    transform: translateX(calc(-100% - 2rem)) scale(0.88);
+  }
+}
+
+@keyframes chibi-exit-to-right {
+  from {
+    opacity: 1;
+    transform: translateX(-1rem) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(calc(100% + 2rem)) scale(0.88);
+  }
+}
+
+@keyframes chibi-idle-bounce {
+  0%, 100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  25% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(2deg);
+  }
+  75% {
+    transform: translateY(-12px) rotate(-1deg);
   }
 }
