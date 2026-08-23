@@ -14,8 +14,8 @@ export default function EventHeadApron({ className = "" }: Props) {
       <Image
         src="/images/event-head-apron.png"
         alt=""
-        width={220}
-        height={120}
+        width={954}
+        height={488}
         className="event-head-apron-img"
         unoptimized
       />
