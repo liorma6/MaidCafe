@@ -23,7 +23,7 @@ export default async function EventsPage() {
           <p className="mt-4 text-pink-500">עדיין אין אלבומים — בקרוב!</p>
         </div>
       ) : (
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 sm:mt-12">
           {events.map((event) => (
             <EventHeartCard key={event.id} event={event} />
           ))}
