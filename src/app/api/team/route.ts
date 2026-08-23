@@ -28,20 +28,27 @@ export async function POST(request: NextRequest) {
     const role = ((formData.get("role") as string) || "מייד").trim();
     const catchphrase = (formData.get("catchphrase") as string)?.trim();
     const file = formData.get("file") as File | null;
+    const chibiFile = formData.get("chibiFile") as File | null;
 
     if (!name || !catchphrase || !file) {
       return NextResponse.json(
-        { error: "נא למלא שם, משפט תפיסה ותמונה" },
+        { error: "נא למלא שם, משפט תפיסה ותמונה רגילה" },
         { status: 400 },
       );
     }
 
     const imageUrl = await uploadImage("team", file);
+    let chibiImageUrl = "";
+    if (chibiFile) {
+      chibiImageUrl = await uploadImage("team-chibi", chibiFile);
+    }
+
     const member = await createTeamMember({
       name,
       role,
       catchphrase,
       image: imageUrl,
+      chibiImage: chibiImageUrl,
     });
 
     return NextResponse.json(member);

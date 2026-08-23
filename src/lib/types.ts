@@ -30,6 +30,7 @@ export interface TeamMember {
   role: string;
   catchphrase: string;
   image: string;
+  chibiImage: string;
 }
 
 export interface AdminContent {

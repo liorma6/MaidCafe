@@ -43,6 +43,7 @@ create table if not exists team_members (
   role text not null default 'מייד',
   catchphrase text not null default '',
   image text not null,
+  chibi_image text not null default '',
   sort_order int not null default 0
 );
 

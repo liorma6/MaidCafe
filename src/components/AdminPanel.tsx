@@ -660,7 +660,33 @@ function TeamTab({
   const [newRole, setNewRole] = useState("מייד");
   const [newCatchphrase, setNewCatchphrase] = useState("");
   const [newImage, setNewImage] = useState<File | null>(null);
+  const [newChibiImage, setNewChibiImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const handleImageUpload = async (
+    memberId: string,
+    file: File,
+    type: "portrait" | "chibi",
+  ) => {
+    const formData = new FormData();
+    formData.append("memberId", memberId);
+    formData.append("file", file);
+    formData.append("type", type);
+    const res = await fetch("/api/team/upload", { method: "POST", body: formData });
+    if (res.ok) {
+      const { member } = await res.json();
+      setData((d) => ({
+        ...d,
+        team: d.team.map((t) => (t.id === memberId ? member : t)),
+      }));
+      showMessage(
+        type === "chibi" ? "תמונת צ'יבי עודכנה! ♡" : "תמונת פרופיל עודכנה! ♡",
+      );
+    } else {
+      const data = await res.json();
+      showMessage(data.error || "שגיאה בהעלאה");
+    }
+  };
 
   const handleSave = async () => {
     if (!editing) return;
@@ -689,6 +715,7 @@ function TeamTab({
     formData.append("role", newRole);
     formData.append("catchphrase", newCatchphrase);
     formData.append("file", newImage);
+    if (newChibiImage) formData.append("chibiFile", newChibiImage);
 
     const res = await fetch("/api/team", { method: "POST", body: formData });
     if (res.ok) {
@@ -698,6 +725,7 @@ function TeamTab({
       setNewRole("מייד");
       setNewCatchphrase("");
       setNewImage(null);
+      setNewChibiImage(null);
       setCreating(false);
       showMessage("חבר/ת צוות חדש/ה נוסף/ה! ♡");
     } else {
@@ -755,10 +783,19 @@ function TeamTab({
             required
           />
           <FileUploadButton
-            label="📸 תמונה מצויירת"
-            hint="חובה — תמונת חבר/ת הצוות"
+            label="📸 תמונה רגילה"
+            hint="חובה — תמונת פרופיל (עיגול)"
             onChange={(files) => setNewImage(files[0] || null)}
             selectedLabel={newImage ? `נבחר: ${newImage.name}` : undefined}
+          />
+          <FileUploadButton
+            label="✨ תמונת צ'יבי"
+            hint="מומלץ — לקפיצה + קול בלחיצה"
+            variant="secondary"
+            onChange={(files) => setNewChibiImage(files[0] || null)}
+            selectedLabel={
+              newChibiImage ? `נבחר: ${newChibiImage.name}` : undefined
+            }
           />
           <div className="flex gap-2">
             <button type="submit" disabled={loading} className="admin-btn">
@@ -816,32 +853,67 @@ function TeamTab({
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <img
-                  src={member.image}
-                  alt={member.name}
-                  className="h-16 w-16 rounded-full border-2 border-pink-200 object-cover"
-                />
-                <div>
-                  <h3 className="font-bold text-pink-700">{member.name}</h3>
-                  <p className="text-sm text-pink-500">{member.role}</p>
-                  <p className="text-sm text-pink-800/70">{member.catchphrase}</p>
+            <div className="space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex gap-2">
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      className="h-16 w-16 rounded-full border-2 border-pink-200 object-cover"
+                    />
+                    {member.chibiImage ? (
+                      <img
+                        src={member.chibiImage}
+                        alt={`${member.name} chibi`}
+                        className="h-16 w-16 rounded-xl border-2 border-pink-200 bg-pink-50 object-contain p-1"
+                      />
+                    ) : (
+                      <div className="flex h-16 w-16 items-center justify-center rounded-xl border-2 border-dashed border-pink-200 bg-pink-50 text-xs text-pink-300">
+                        אין צ&apos;יבי
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-pink-700">{member.name}</h3>
+                    <p className="text-sm text-pink-500">{member.role}</p>
+                    <p className="text-sm text-pink-800/70">{member.catchphrase}</p>
+                  </div>
+                </div>
+                <div className="flex shrink-0 flex-col gap-2">
+                  <button
+                    onClick={() => setEditing(member)}
+                    className="text-sm text-pink-500 hover:text-pink-700"
+                  >
+                    עריכת טקסט
+                  </button>
+                  <button
+                    onClick={() => handleDelete(member.id)}
+                    className="text-sm text-red-400 hover:text-red-600"
+                  >
+                    מחק
+                  </button>
                 </div>
               </div>
-              <div className="flex shrink-0 flex-col gap-2">
-                <button
-                  onClick={() => setEditing(member)}
-                  className="text-sm text-pink-500 hover:text-pink-700"
-                >
-                  עריכה
-                </button>
-                <button
-                  onClick={() => handleDelete(member.id)}
-                  className="text-sm text-red-400 hover:text-red-600"
-                >
-                  מחק
-                </button>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <FileUploadButton
+                  label="📸 החלפת תמונה רגילה"
+                  hint="תמונת הפרופיל"
+                  onChange={(files) => {
+                    const file = files[0];
+                    if (file) handleImageUpload(member.id, file, "portrait");
+                  }}
+                />
+                <FileUploadButton
+                  label="✨ החלפת תמונת צ'יבי"
+                  hint="לקפיצה + קול"
+                  variant="secondary"
+                  onChange={(files) => {
+                    const file = files[0];
+                    if (file) handleImageUpload(member.id, file, "chibi");
+                  }}
+                />
               </div>
             </div>
           )}

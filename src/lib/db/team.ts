@@ -7,6 +7,7 @@ type TeamRow = {
   role: string;
   catchphrase: string;
   image: string;
+  chibi_image: string | null;
   sort_order: number;
 };
 
@@ -17,6 +18,7 @@ function mapTeamMember(row: TeamRow): TeamMember {
     role: row.role,
     catchphrase: row.catchphrase,
     image: row.image,
+    chibiImage: row.chibi_image || "",
   };
 }
 
@@ -31,6 +33,18 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
   return (data as TeamRow[]).map(mapTeamMember);
 }
 
+export async function getTeamMemberById(id: string): Promise<TeamMember | null> {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("team_members")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) return null;
+  return mapTeamMember(data as TeamRow);
+}
+
 export async function updateTeamMember(
   id: string,
   input: { name?: string; role?: string; catchphrase?: string },
@@ -41,15 +55,12 @@ export async function updateTeamMember(
   if (input.role) updates.role = input.role;
   if (input.catchphrase) updates.catchphrase = input.catchphrase;
 
-  const { data, error } = await supabase
-    .from("team_members")
-    .update(updates)
-    .eq("id", id)
-    .select("*")
-    .single();
-
+  const { error } = await supabase.from("team_members").update(updates).eq("id", id);
   if (error) throw new Error(error.message);
-  return mapTeamMember(data as TeamRow);
+
+  const member = await getTeamMemberById(id);
+  if (!member) throw new Error("חבר צוות לא נמצא");
+  return member;
 }
 
 export async function createTeamMember(input: {
@@ -57,6 +68,7 @@ export async function createTeamMember(input: {
   role: string;
   catchphrase: string;
   image: string;
+  chibiImage?: string;
 }): Promise<TeamMember> {
   const supabase = getSupabaseAdmin();
   const { data: existing } = await supabase
@@ -75,6 +87,7 @@ export async function createTeamMember(input: {
       role: input.role,
       catchphrase: input.catchphrase,
       image: input.image,
+      chibi_image: input.chibiImage || "",
       sort_order: nextOrder,
     })
     .select("*")
@@ -95,13 +108,27 @@ export async function updateTeamMemberImage(
   image: string,
 ): Promise<TeamMember> {
   const supabase = getSupabaseAdmin();
-  const { data, error } = await supabase
+  const { error } = await supabase.from("team_members").update({ image }).eq("id", id);
+  if (error) throw new Error(error.message);
+
+  const member = await getTeamMemberById(id);
+  if (!member) throw new Error("חבר צוות לא נמצא");
+  return member;
+}
+
+export async function updateTeamMemberChibiImage(
+  id: string,
+  chibiImage: string,
+): Promise<TeamMember> {
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase
     .from("team_members")
-    .update({ image })
-    .eq("id", id)
-    .select("*")
-    .single();
+    .update({ chibi_image: chibiImage })
+    .eq("id", id);
 
   if (error) throw new Error(error.message);
-  return mapTeamMember(data as TeamRow);
+
+  const member = await getTeamMemberById(id);
+  if (!member) throw new Error("חבר צוות לא נמצא");
+  return member;
 }

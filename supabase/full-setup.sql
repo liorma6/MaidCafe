@@ -52,8 +52,12 @@ create table if not exists team_members (
   role text not null default 'מייד',
   catchphrase text not null default '',
   image text not null,
+  chibi_image text not null default '',
   sort_order int not null default 0
 );
+
+alter table team_members
+  add column if not exists chibi_image text not null default '';
 
 -- ── 3. Indexes ──────────────────────────────────────────────
 create index if not exists idx_event_images_event_id on event_images(event_id);
@@ -67,15 +71,22 @@ select
   true
 where not exists (select 1 from announcements limit 1);
 
-insert into team_members (name, role, catchphrase, image, sort_order)
+insert into team_members (name, role, catchphrase, image, chibi_image, sort_order)
 select * from (values
-  ('Luna', 'מייד', 'מוכנה לשרת אתכם בחיוך! ♡', '/images/team/team-1.png', 1),
-  ('Sakura', 'מייד', 'אהבה ומתוק בכל כוס! ♡', '/images/team/team-2.png', 2),
-  ('Hikari', 'מייד', 'אנרגיה טובה וקפה מושלם! ☆', '/images/team/team-3.png', 3),
-  ('Yuki', 'מייד', 'סגנון, חן וקסם סגול! ♡', '/images/team/team-4.png', 4),
-  ('Momo', 'מייד', 'עוצמה עם חיוך מתוק! ♡', '/images/team/team-5.png', 5)
-) as seed(name, role, catchphrase, image, sort_order)
+  ('Luna', 'מייד', 'מוכנה לשרת אתכם בחיוך! ♡', '/images/team/team-1.png', '/images/team/chibi/team-1-chibi.png', 1),
+  ('Sakura', 'מייד', 'אהבה ומתוק בכל כוס! ♡', '/images/team/team-2.png', '/images/team/chibi/team-2-chibi.png', 2),
+  ('Hikari', 'מייד', 'אנרגיה טובה וקפה מושלם! ☆', '/images/team/team-3.png', '/images/team/chibi/team-3-chibi.png', 3),
+  ('Yuki', 'מייד', 'סגנון, חן וקסם סגול! ♡', '/images/team/team-4.png', '/images/team/chibi/team-4-chibi.png', 4),
+  ('Momo', 'מייד', 'עוצמה עם חיוך מתוק! ♡', '/images/team/team-5.png', '/images/team/chibi/team-5-chibi.png', 5)
+) as seed(name, role, catchphrase, image, chibi_image, sort_order)
 where not exists (select 1 from team_members limit 1);
+
+-- Update existing team with chibi paths (safe to re-run)
+update team_members set chibi_image = '/images/team/chibi/team-1-chibi.png' where sort_order = 1 and chibi_image = '';
+update team_members set chibi_image = '/images/team/chibi/team-2-chibi.png' where sort_order = 2 and chibi_image = '';
+update team_members set chibi_image = '/images/team/chibi/team-3-chibi.png' where sort_order = 3 and chibi_image = '';
+update team_members set chibi_image = '/images/team/chibi/team-4-chibi.png' where sort_order = 4 and chibi_image = '';
+update team_members set chibi_image = '/images/team/chibi/team-5-chibi.png' where sort_order = 5 and chibi_image = '';
 
 -- ── 5. Row Level Security ───────────────────────────────────
 alter table announcements enable row level security;
