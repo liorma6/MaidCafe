@@ -427,3 +427,25 @@ html.a11y-high-contrast img {
 .partnership-card:hover .partnership-badge {
   box-shadow: 0 0 28px rgba(255, 105, 180, 0.48);
 }
+
+/* Maid head apron on event egg cards */
+.event-head-apron-svg {
+  width: 46%;
+  min-width: 96px;
+  max-width: 148px;
+  height: auto;
+  filter: drop-shadow(0 2px 4px rgba(255, 105, 180, 0.35));
+}
+
+.event-heart-card:hover .event-head-apron-svg {
+  animation: apron-bob 0.55s ease-in-out infinite;
+}
+
+@keyframes apron-bob {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
