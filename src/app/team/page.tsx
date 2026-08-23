@@ -7,7 +7,7 @@ export default async function TeamPage() {
   const team = await getTeamMembers();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 overflow-visible">
       <div className="text-center">
         <h1 className="section-title text-3xl font-bold text-pink-700">
           מידע על הצוות
@@ -17,9 +17,13 @@ export default async function TeamPage() {
         </p>
       </div>
 
-      <div className="grid gap-8 sm:grid-cols-2">
-        {team.map((member) => (
-          <TeamCard key={member.id} member={member} />
+      <div className="grid gap-8 overflow-visible sm:grid-cols-2">
+        {team.map((member, index) => (
+          <TeamCard
+            key={member.id}
+            member={member}
+            peekSide={index % 2 === 0 ? "left" : "right"}
+          />
         ))}
       </div>
     </div>

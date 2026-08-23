@@ -6,10 +6,12 @@ import type {
   Announcement,
   EventAlbum,
   MerchItem,
+  Partnership,
   TeamMember,
 } from "@/lib/types";
+import { formatEventDateRange } from "@/lib/date-utils";
 
-type Tab = "announcements" | "events" | "merch" | "team";
+type Tab = "announcements" | "events" | "merch" | "team" | "partnerships";
 
 interface AdminPanelProps {
   initialData: {
@@ -17,6 +19,7 @@ interface AdminPanelProps {
     events: EventAlbum[];
     merch: MerchItem[];
     team: TeamMember[];
+    partnerships: Partnership[];
   };
   adminEmail: string;
 }
@@ -42,6 +45,7 @@ export default function AdminPanel({ initialData, adminEmail }: AdminPanelProps)
     { id: "events", label: "אירועים", emoji: "📸" },
     { id: "merch", label: "מרצ׳", emoji: "🛍️" },
     { id: "team", label: "צוות", emoji: "♡" },
+    { id: "partnerships", label: "שת״פים", emoji: "🤝" },
   ];
 
   return (
@@ -113,6 +117,15 @@ export default function AdminPanel({ initialData, adminEmail }: AdminPanelProps)
           team={data.team}
           setData={setData}
           showMessage={showMessage}
+        />
+      )}
+      {tab === "partnerships" && (
+        <PartnershipsTab
+          partnerships={data.partnerships}
+          setData={setData}
+          showMessage={showMessage}
+          loading={loading}
+          setLoading={setLoading}
         />
       )}
     </div>
@@ -229,6 +242,7 @@ function EventsTab({
 }) {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [description, setDescription] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
@@ -275,7 +289,7 @@ function EventsTab({
     const res = await fetch("/api/events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, date, description }),
+      body: JSON.stringify({ title, date, endDate: endDate || null, description }),
     });
 
     if (res.ok) {
@@ -286,6 +300,7 @@ function EventsTab({
       setData((d) => ({ ...d, events: [item, ...d.events] }));
       setTitle("");
       setDate("");
+      setEndDate("");
       setDescription("");
       setCoverFile(null);
       setGalleryFiles([]);
@@ -348,6 +363,30 @@ function EventsTab({
     }
   };
 
+  const handleUpdateDates = async (
+    eventId: string,
+    startDate: string,
+    eventEndDate: string,
+  ) => {
+    const res = await fetch("/api/events", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: eventId,
+        date: startDate,
+        endDate: eventEndDate || null,
+      }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      setData((d) => ({
+        ...d,
+        events: d.events.map((e) => (e.id === eventId ? updated : e)),
+      }));
+      showMessage("תאריכים עודכנו! ♡");
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("למחוק את האירוע?")) return;
     await fetch("/api/events", {
@@ -373,12 +412,30 @@ function EventsTab({
           className="admin-input"
           required
         />
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="admin-input"
-        />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-pink-500">
+              תאריך התחלה
+            </label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="admin-input"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-pink-500">
+              תאריך סיום (אופציונלי)
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="admin-input"
+            />
+          </div>
+        </div>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -442,7 +499,13 @@ function EventsTab({
               )}
               <div>
                 <h3 className="font-bold text-pink-700">{event.title}</h3>
-                <p className="text-sm text-pink-500">{event.date}</p>
+                <p className="text-sm text-pink-500">
+                  {formatEventDateRange(event.date, event.endDate)}
+                </p>
+                <EventDateEditor
+                  event={event}
+                  onSave={(start, end) => handleUpdateDates(event.id, start, end)}
+                />
                 {event.description && (
                   <p className="mt-1 text-sm text-pink-800/70">{event.description}</p>
                 )}
@@ -790,7 +853,7 @@ function TeamTab({
           />
           <FileUploadButton
             label="✨ תמונת צ'יבי"
-            hint="מומלץ — לקפיצה + קול בלחיצה"
+            hint="מומלץ — לקפיצה בהובר"
             variant="secondary"
             onChange={(files) => setNewChibiImage(files[0] || null)}
             selectedLabel={
@@ -907,7 +970,7 @@ function TeamTab({
                 />
                 <FileUploadButton
                   label="✨ החלפת תמונת צ'יבי"
-                  hint="לקפיצה + קול"
+                  hint="לקפיצה בהובר"
                   variant="secondary"
                   onChange={(files) => {
                     const file = files[0];
@@ -917,6 +980,176 @@ function TeamTab({
               </div>
             </div>
           )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EventDateEditor({
+  event,
+  onSave,
+}: {
+  event: EventAlbum;
+  onSave: (startDate: string, endDate: string) => void;
+}) {
+  const [startDate, setStartDate] = useState(event.date);
+  const [endDate, setEndDate] = useState(event.endDate || "");
+
+  return (
+    <div className="mt-2 flex flex-wrap items-end gap-2">
+      <input
+        type="date"
+        value={startDate}
+        onChange={(e) => setStartDate(e.target.value)}
+        className="rounded-lg border border-pink-200 px-2 py-1 text-xs"
+        aria-label="תאריך התחלה"
+      />
+      <input
+        type="date"
+        value={endDate}
+        onChange={(e) => setEndDate(e.target.value)}
+        className="rounded-lg border border-pink-200 px-2 py-1 text-xs"
+        aria-label="תאריך סיום"
+      />
+      <button
+        type="button"
+        onClick={() => onSave(startDate, endDate)}
+        className="rounded-full bg-pink-100 px-3 py-1 text-xs font-semibold text-pink-700 hover:bg-pink-200"
+      >
+        שמור תאריכים
+      </button>
+    </div>
+  );
+}
+
+function PartnershipsTab({
+  partnerships,
+  setData,
+  showMessage,
+  loading,
+  setLoading,
+}: {
+  partnerships: Partnership[];
+  setData: React.Dispatch<React.SetStateAction<AdminPanelProps["initialData"]>>;
+  showMessage: (t: string) => void;
+  loading: boolean;
+  setLoading: (v: boolean) => void;
+}) {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const res = await fetch("/api/partnerships", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, description }),
+    });
+    if (res.ok) {
+      const item = await res.json();
+      setData((d) => ({ ...d, partnerships: [item, ...d.partnerships] }));
+      setName("");
+      setDescription("");
+      showMessage("שת״פ נוסף! עכשיו אפשר להעלות תמונה 🤝");
+    } else {
+      const data = await res.json();
+      showMessage(data.error || "שגיאה");
+    }
+    setLoading(false);
+  };
+
+  const handleUpload = async (partnershipId: string, file: File) => {
+    const formData = new FormData();
+    formData.append("partnershipId", partnershipId);
+    formData.append("file", file);
+    const res = await fetch("/api/partnerships/upload", {
+      method: "POST",
+      body: formData,
+    });
+    if (res.ok) {
+      const { item } = await res.json();
+      setData((d) => ({
+        ...d,
+        partnerships: d.partnerships.map((p) =>
+          p.id === partnershipId ? item : p,
+        ),
+      }));
+      showMessage("תמונה הועלתה! ♡");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("למחוק את השת״פ?")) return;
+    await fetch("/api/partnerships", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    setData((d) => ({
+      ...d,
+      partnerships: d.partnerships.filter((p) => p.id !== id),
+    }));
+    showMessage("שת״פ נמחק");
+  };
+
+  return (
+    <div className="space-y-6">
+      <form onSubmit={handleCreate} className="kawaii-card space-y-4 p-6">
+        <h2 className="text-lg font-bold text-pink-700">הוספת שת״פ</h2>
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="שם העסק"
+          className="admin-input"
+          required
+        />
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="תיאור קצר"
+          rows={2}
+          className="admin-input"
+        />
+        <button type="submit" disabled={loading} className="admin-btn">
+          {loading ? "מוסיף..." : "הוסף שת״פ"}
+        </button>
+      </form>
+
+      {partnerships.map((partner) => (
+        <div key={partner.id} className="kawaii-card flex gap-4 p-4">
+          {partner.image ? (
+            <img
+              src={partner.image}
+              alt={partner.name}
+              className="h-24 w-24 rounded-lg border border-pink-200 bg-white object-contain p-1"
+            />
+          ) : (
+            <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-pink-100 text-pink-300">
+              אין תמונה
+            </div>
+          )}
+          <div className="flex-1">
+            <h3 className="font-bold text-pink-700">{partner.name}</h3>
+            <p className="text-sm text-pink-800/70">{partner.description}</p>
+            <div className="mt-3">
+              <FileUploadButton
+                label="📸 העלאת / החלפת תמונה"
+                hint="לוגו או תמונה של העסק"
+                onChange={(files) => {
+                  const file = files[0];
+                  if (file) handleUpload(partner.id, file);
+                }}
+              />
+            </div>
+          </div>
+          <button
+            onClick={() => handleDelete(partner.id)}
+            className="shrink-0 self-start text-sm text-red-400 hover:text-red-600"
+          >
+            מחק
+          </button>
         </div>
       ))}
     </div>

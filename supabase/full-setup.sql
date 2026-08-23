@@ -19,14 +19,17 @@ create table if not exists events (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   date date not null default current_date,
+  end_date date,
   description text not null default '',
   cover_image text not null default '',
   created_at timestamptz not null default now()
 );
 
--- Upgrade: add cover_image if table existed before this column
 alter table events
   add column if not exists cover_image text not null default '';
+
+alter table events
+  add column if not exists end_date date;
 
 create table if not exists event_images (
   id uuid primary key default gen_random_uuid(),
@@ -58,6 +61,15 @@ create table if not exists team_members (
 
 alter table team_members
   add column if not exists chibi_image text not null default '';
+
+create table if not exists partnerships (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  description text not null default '',
+  image text not null default '',
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
 
 -- ── 3. Indexes ──────────────────────────────────────────────
 create index if not exists idx_event_images_event_id on event_images(event_id);
@@ -94,6 +106,7 @@ alter table events enable row level security;
 alter table event_images enable row level security;
 alter table merch enable row level security;
 alter table team_members enable row level security;
+alter table partnerships enable row level security;
 
 drop policy if exists "announcements_public_read" on announcements;
 create policy "announcements_public_read"
@@ -122,6 +135,12 @@ create policy "merch_public_read"
 drop policy if exists "team_members_public_read" on team_members;
 create policy "team_members_public_read"
   on team_members for select
+  to anon, authenticated
+  using (true);
+
+drop policy if exists "partnerships_public_read" on partnerships;
+create policy "partnerships_public_read"
+  on partnerships for select
   to anon, authenticated
   using (true);
 

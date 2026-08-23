@@ -291,41 +291,29 @@ html.a11y-high-contrast img {
   filter: grayscale(1) contrast(1.2);
 }
 
-/* Chibi popup animation */
-.chibi-overlay {
-  background: rgba(255, 240, 245, 0.85);
-  backdrop-filter: blur(8px);
-  animation: chibi-fade-in 0.25s ease-out;
+/* Chibi hover peek */
+.chibi-peek {
+  opacity: 0;
+  transform: translateY(16px) scale(0.85);
+  transition:
+    opacity 0.35s ease,
+    transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.chibi-popup {
-  animation: chibi-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+.group:hover .chibi-peek {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
-.chibi-bounce {
-  animation: chibi-float 2s ease-in-out infinite;
+.chibi-peek-img {
+  animation: none;
 }
 
-@keyframes chibi-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.group:hover .chibi-peek-img {
+  animation: chibi-peek-bounce 1.6s ease-in-out infinite;
 }
 
-@keyframes chibi-pop {
-  0% {
-    opacity: 0;
-    transform: scale(0.2) translateY(40px);
-  }
-  70% {
-    transform: scale(1.08) translateY(-8px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-@keyframes chibi-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+@keyframes chibi-peek-bounce {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-8px) rotate(2deg); }
 }

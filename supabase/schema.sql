@@ -14,6 +14,7 @@ create table if not exists events (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   date date not null default current_date,
+  end_date date,
   description text not null default '',
   cover_image text not null default '',
   created_at timestamptz not null default now()
@@ -45,6 +46,15 @@ create table if not exists team_members (
   image text not null,
   chibi_image text not null default '',
   sort_order int not null default 0
+);
+
+create table if not exists partnerships (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  description text not null default '',
+  image text not null default '',
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
 );
 
 create index if not exists idx_event_images_event_id on event_images(event_id);

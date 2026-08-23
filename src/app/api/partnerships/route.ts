@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import {
-  createEvent,
-  deleteEvent,
-  getEvents,
-  updateEvent,
-} from "@/lib/db/events";
+  createPartnership,
+  deletePartnership,
+  getPartnerships,
+  updatePartnership,
+} from "@/lib/db/partnerships";
 
 export async function GET() {
   try {
-    const events = await getEvents();
-    return NextResponse.json(events);
+    const partnerships = await getPartnerships();
+    return NextResponse.json(partnerships);
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "שגיאת שרת" },
@@ -22,25 +22,21 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     await requireAdmin();
-    const { title, date, endDate, description } = (await request.json()) as {
-      title?: string;
-      date?: string;
-      endDate?: string | null;
+    const { name, description } = (await request.json()) as {
+      name?: string;
       description?: string;
     };
 
-    if (!title?.trim()) {
-      return NextResponse.json({ error: "נא למלא שם אירוע" }, { status: 400 });
+    if (!name?.trim()) {
+      return NextResponse.json({ error: "נא למלא שם עסק" }, { status: 400 });
     }
 
-    const event = await createEvent({
-      title: title.trim(),
-      date: date || new Date().toISOString().split("T")[0],
-      endDate: endDate || null,
+    const item = await createPartnership({
+      name: name.trim(),
       description: description?.trim(),
     });
 
-    return NextResponse.json(event);
+    return NextResponse.json(item);
   } catch (error) {
     const message = error instanceof Error ? error.message : "שגיאת שרת";
     const status = message === "Unauthorized" ? 401 : 500;
@@ -56,7 +52,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "חסר מזהה" }, { status: 400 });
     }
 
-    await deleteEvent(id);
+    await deletePartnership(id);
     return NextResponse.json({ success: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "שגיאת שרת";
@@ -68,11 +64,9 @@ export async function DELETE(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     await requireAdmin();
-    const { id, title, date, endDate, description } = (await request.json()) as {
+    const { id, name, description } = (await request.json()) as {
       id?: string;
-      title?: string;
-      date?: string;
-      endDate?: string | null;
+      name?: string;
       description?: string;
     };
 
@@ -80,14 +74,12 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "חסר מזהה" }, { status: 400 });
     }
 
-    const event = await updateEvent(id, {
-      title: title?.trim(),
-      date,
-      endDate,
+    const item = await updatePartnership(id, {
+      name: name?.trim(),
       description,
     });
 
-    return NextResponse.json(event);
+    return NextResponse.json(item);
   } catch (error) {
     const message = error instanceof Error ? error.message : "שגיאת שרת";
     const status = message === "Unauthorized" ? 401 : 500;

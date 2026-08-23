@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getEventById } from "@/lib/db/events";
+import { formatEventDateRange } from "@/lib/date-utils";
 import { isRemoteImage } from "@/lib/image-utils";
 
 export const dynamic = "force-dynamic";
@@ -16,11 +17,7 @@ export default async function EventDetailPage({ params }: Props) {
 
   if (!event) notFound();
 
-  const formattedDate = new Date(event.date).toLocaleDateString("he-IL", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const formattedDate = formatEventDateRange(event.date, event.endDate);
 
   return (
     <div className="space-y-8">

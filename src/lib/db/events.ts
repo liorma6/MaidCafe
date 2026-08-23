@@ -5,6 +5,7 @@ type EventRow = {
   id: string;
   title: string;
   date: string;
+  end_date: string | null;
   description: string | null;
   cover_image: string | null;
 };
@@ -24,6 +25,7 @@ function mapEvent(
     id: event.id,
     title: event.title,
     date: event.date,
+    endDate: event.end_date || null,
     description: event.description || "",
     coverImage: event.cover_image || "",
     images,
@@ -94,6 +96,7 @@ export async function getEventById(id: string): Promise<EventAlbum | null> {
 export async function createEvent(input: {
   title: string;
   date: string;
+  endDate?: string | null;
   description?: string;
 }): Promise<EventAlbum> {
   const supabase = getSupabaseAdmin();
@@ -102,6 +105,7 @@ export async function createEvent(input: {
     .insert({
       title: input.title,
       date: input.date,
+      end_date: input.endDate || null,
       description: input.description || "",
       cover_image: "",
     })
@@ -114,12 +118,18 @@ export async function createEvent(input: {
 
 export async function updateEvent(
   id: string,
-  input: { title?: string; date?: string; description?: string },
+  input: {
+    title?: string;
+    date?: string;
+    endDate?: string | null;
+    description?: string;
+  },
 ): Promise<EventAlbum> {
   const supabase = getSupabaseAdmin();
   const updates: Partial<EventRow> = {};
   if (input.title) updates.title = input.title;
   if (input.date) updates.date = input.date;
+  if (input.endDate !== undefined) updates.end_date = input.endDate || null;
   if (input.description !== undefined) updates.description = input.description;
 
   const { error } = await supabase.from("events").update(updates).eq("id", id);

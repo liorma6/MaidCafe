@@ -5,6 +5,7 @@ export const NAV_ITEMS = [
   { href: "/", label: "עמוד הבית" },
   { href: "/events", label: "אירועים שהיו" },
   { href: "/team", label: "מידע על הצוות" },
+  { href: "/partnerships", label: "שת״פים" },
   { href: "/join", label: "בואו לעבוד איתנו" },
   { href: "/merch", label: "מכירת המרצ׳ שלנו" },
 ] as const;

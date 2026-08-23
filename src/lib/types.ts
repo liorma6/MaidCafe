@@ -10,6 +10,7 @@ export interface EventAlbum {
   id: string;
   title: string;
   date: string;
+  endDate?: string | null;
   description?: string;
   coverImage: string;
   images: string[];
@@ -33,9 +34,17 @@ export interface TeamMember {
   chibiImage: string;
 }
 
+export interface Partnership {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+}
+
 export interface AdminContent {
   announcements: Announcement[];
   events: EventAlbum[];
   merch: MerchItem[];
   team: TeamMember[];
+  partnerships: Partnership[];
 }
