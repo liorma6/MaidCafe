@@ -392,6 +392,31 @@ function EventsTab({
     }
   };
 
+  const handleRemoveGalleryImage = async (eventId: string, imageUrl: string) => {
+    if (!confirm("למחוק את התמונה מהגלריה?")) return;
+
+    const res = await fetch("/api/events/upload", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ eventId, imagePath: imageUrl, type: "gallery" }),
+    });
+
+    if (res.ok) {
+      setData((d) => ({
+        ...d,
+        events: d.events.map((e) =>
+          e.id === eventId
+            ? { ...e, images: e.images.filter((img) => img !== imageUrl) }
+            : e,
+        ),
+      }));
+      showMessage("תמונה הוסרה מהגלריה");
+    } else {
+      const data = await res.json().catch(() => ({}));
+      showMessage(data.error || "שגיאה במחיקת תמונה");
+    }
+  };
+
   const handleRemoveVideo = async (eventId: string, videoUrl: string) => {
     const res = await fetch("/api/events/upload", {
       method: "DELETE",
@@ -618,17 +643,27 @@ function EventsTab({
 
           <div className="mb-3 flex flex-wrap gap-2">
             {event.images.map((img) => (
-              <img
-                key={img}
-                src={img}
-                alt=""
-                className="h-20 w-20 rounded-lg border border-pink-200 object-cover"
-              />
+              <div key={img} className="group relative h-20 w-20 shrink-0">
+                <img
+                  src={img}
+                  alt=""
+                  className="h-full w-full rounded-lg border border-pink-200 object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveGalleryImage(event.id, img)}
+                  className="absolute -left-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-sm font-bold text-white shadow hover:bg-red-600"
+                  aria-label="מחק תמונה"
+                  title="מחק תמונה"
+                >
+                  ×
+                </button>
+              </div>
             ))}
             {event.videos.map((video) => (
               <div
                 key={video}
-                className="relative h-20 w-20 overflow-hidden rounded-lg border border-pink-200 bg-pink-900"
+                className="group relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-pink-200 bg-pink-900"
               >
                 <video
                   src={video}
@@ -636,9 +671,18 @@ function EventsTab({
                   muted
                   playsInline
                 />
-                <span className="absolute inset-0 flex items-center justify-center bg-black/30 text-lg text-white">
+                <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30 text-lg text-white">
                   ▶
                 </span>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveVideo(event.id, video)}
+                  className="absolute -left-1.5 -top-1.5 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-sm font-bold text-white shadow hover:bg-red-600"
+                  aria-label="מחק סרטון"
+                  title="מחק סרטון"
+                >
+                  ×
+                </button>
               </div>
             ))}
           </div>
@@ -687,26 +731,6 @@ function EventsTab({
               </button>
             )}
           </div>
-
-          {event.videos.length > 0 && (
-            <div className="mt-4 space-y-2">
-              <p className="text-xs font-semibold text-pink-500">סרטונים:</p>
-              <div className="flex flex-wrap gap-2">
-                {event.videos.map((video) => (
-                  <div key={video} className="flex items-center gap-2 rounded-lg bg-pink-50 px-3 py-2">
-                    <span className="text-sm text-pink-700">🎬 סרטון</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveVideo(event.id, video)}
-                      className="text-xs text-red-400 hover:text-red-600"
-                    >
-                      הסר
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       ))}
     </div>
