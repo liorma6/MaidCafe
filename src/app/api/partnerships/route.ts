@@ -7,6 +7,7 @@ import {
   updatePartnership,
 } from "@/lib/db/partnerships";
 import { uploadImage } from "@/lib/storage";
+import { normalizeExternalUrl } from "@/lib/url-utils";
 
 export async function GET() {
   try {
@@ -26,6 +27,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const name = (formData.get("name") as string)?.trim();
     const description = (formData.get("description") as string)?.trim();
+    const url = normalizeExternalUrl((formData.get("url") as string) || "");
     const file = formData.get("file") as File | null;
 
     if (!name) {
@@ -41,6 +43,7 @@ export async function POST(request: NextRequest) {
       name,
       description,
       image: imageUrl,
+      url,
     });
 
     return NextResponse.json(item);
@@ -71,10 +74,11 @@ export async function DELETE(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     await requireAdmin();
-    const { id, name, description } = (await request.json()) as {
+    const { id, name, description, url } = (await request.json()) as {
       id?: string;
       name?: string;
       description?: string;
+      url?: string;
     };
 
     if (!id) {
@@ -84,6 +88,7 @@ export async function PATCH(request: NextRequest) {
     const item = await updatePartnership(id, {
       name: name?.trim(),
       description,
+      url: url !== undefined ? normalizeExternalUrl(url) : undefined,
     });
 
     return NextResponse.json(item);

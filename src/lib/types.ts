@@ -40,6 +40,7 @@ export interface Partnership {
   name: string;
   description: string;
   image: string;
+  url: string;
 }
 
 export interface AdminContent {

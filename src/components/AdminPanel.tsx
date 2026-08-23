@@ -1285,7 +1285,9 @@ function PartnershipsTab({
 }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [url, setUrl] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [editing, setEditing] = useState<Partnership | null>(null);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1298,6 +1300,7 @@ function PartnershipsTab({
     const formData = new FormData();
     formData.append("name", name);
     formData.append("description", description);
+    formData.append("url", url);
     formData.append("file", imageFile);
 
     const res = await fetch("/api/partnerships", {
@@ -1309,11 +1312,42 @@ function PartnershipsTab({
       setData((d) => ({ ...d, partnerships: [item, ...d.partnerships] }));
       setName("");
       setDescription("");
+      setUrl("");
       setImageFile(null);
       showMessage("שת״פ נוסף בהצלחה! 🤝");
     } else {
       const data = await res.json();
       showMessage(data.error || "שגיאה");
+    }
+    setLoading(false);
+  };
+
+  const handleSave = async () => {
+    if (!editing) return;
+    setLoading(true);
+    const res = await fetch("/api/partnerships", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: editing.id,
+        name: editing.name,
+        description: editing.description,
+        url: editing.url,
+      }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      setData((d) => ({
+        ...d,
+        partnerships: d.partnerships.map((p) =>
+          p.id === updated.id ? updated : p,
+        ),
+      }));
+      setEditing(null);
+      showMessage("שת״פ עודכן! ♡");
+    } else {
+      const data = await res.json();
+      showMessage(data.error || "שגיאה בעדכון");
     }
     setLoading(false);
   };
@@ -1334,6 +1368,9 @@ function PartnershipsTab({
           p.id === partnershipId ? item : p,
         ),
       }));
+      if (editing?.id === partnershipId) {
+        setEditing(item);
+      }
       showMessage("תמונה הועלתה! ♡");
     }
   };
@@ -1349,6 +1386,7 @@ function PartnershipsTab({
       ...d,
       partnerships: d.partnerships.filter((p) => p.id !== id),
     }));
+    if (editing?.id === id) setEditing(null);
     showMessage("שת״פ נמחק");
   };
 
@@ -1370,6 +1408,13 @@ function PartnershipsTab({
           rows={2}
           className="admin-input"
         />
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="קישור לאתר (אופציונלי) — https://..."
+          className="admin-input"
+          dir="ltr"
+        />
         <FileUploadButton
           label="📸 תמונת העסק"
           hint="חובה — לוגו או תמונה של השותף"
@@ -1389,7 +1434,7 @@ function PartnershipsTab({
             <img
               src={partner.image}
               alt={partner.name}
-              className="h-24 w-24 rounded-lg border border-pink-200 bg-white object-contain p-1"
+              className="h-24 w-24 rounded-lg border border-pink-200 object-cover"
             />
           ) : (
             <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-pink-100 text-pink-300">
@@ -1397,8 +1442,63 @@ function PartnershipsTab({
             </div>
           )}
           <div className="flex-1">
-            <h3 className="font-bold text-pink-700">{partner.name}</h3>
-            <p className="text-sm text-pink-800/70">{partner.description}</p>
+            {editing?.id === partner.id ? (
+              <div className="space-y-3">
+                <input
+                  value={editing.name}
+                  onChange={(e) =>
+                    setEditing({ ...editing, name: e.target.value })
+                  }
+                  placeholder="שם העסק"
+                  className="admin-input"
+                />
+                <textarea
+                  value={editing.description}
+                  onChange={(e) =>
+                    setEditing({ ...editing, description: e.target.value })
+                  }
+                  placeholder="תיאור קצר"
+                  rows={2}
+                  className="admin-input"
+                />
+                <input
+                  value={editing.url}
+                  onChange={(e) =>
+                    setEditing({ ...editing, url: e.target.value })
+                  }
+                  placeholder="קישור לאתר — https://..."
+                  className="admin-input"
+                  dir="ltr"
+                />
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={loading}
+                    className="admin-btn text-sm"
+                  >
+                    {loading ? "שומר..." : "שמור שינויים"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditing(null)}
+                    className="rounded-full bg-pink-100 px-4 py-2 text-sm font-semibold text-pink-700 hover:bg-pink-200"
+                  >
+                    ביטול
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <h3 className="font-bold text-pink-700">{partner.name}</h3>
+                <p className="text-sm text-pink-800/70">{partner.description}</p>
+                {partner.url && (
+                  <p className="mt-1 truncate text-xs text-pink-500" dir="ltr">
+                    {partner.url}
+                  </p>
+                )}
+              </>
+            )}
             <div className="mt-3">
               <FileUploadButton
                 label="📸 העלאת / החלפת תמונה"
@@ -1410,12 +1510,23 @@ function PartnershipsTab({
               />
             </div>
           </div>
-          <button
-            onClick={() => handleDelete(partner.id)}
-            className="shrink-0 self-start text-sm text-red-400 hover:text-red-600"
-          >
-            מחק
-          </button>
+          <div className="flex shrink-0 flex-col gap-2 self-start">
+            {editing?.id !== partner.id && (
+              <button
+                type="button"
+                onClick={() => setEditing({ ...partner })}
+                className="text-sm text-pink-600 hover:text-pink-800"
+              >
+                ערוך
+              </button>
+            )}
+            <button
+              onClick={() => handleDelete(partner.id)}
+              className="text-sm text-red-400 hover:text-red-600"
+            >
+              מחק
+            </button>
+          </div>
         </div>
       ))}
     </div>

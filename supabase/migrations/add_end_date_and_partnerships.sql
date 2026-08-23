@@ -8,6 +8,7 @@ create table if not exists partnerships (
   name text not null,
   description text not null default '',
   image text not null default '',
+  url text not null default '',
   sort_order int not null default 0,
   created_at timestamptz not null default now()
 );

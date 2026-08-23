@@ -6,6 +6,7 @@ type PartnershipRow = {
   name: string;
   description: string | null;
   image: string | null;
+  url: string | null;
   sort_order: number;
 };
 
@@ -15,6 +16,7 @@ function mapPartnership(row: PartnershipRow): Partnership {
     name: row.name,
     description: row.description || "",
     image: row.image || "",
+    url: row.url || "",
   };
 }
 
@@ -34,6 +36,7 @@ export async function createPartnership(input: {
   name: string;
   description?: string;
   image?: string;
+  url?: string;
 }): Promise<Partnership> {
   const supabase = getSupabaseAdmin();
   const { data: last } = await supabase
@@ -51,6 +54,7 @@ export async function createPartnership(input: {
       name: input.name,
       description: input.description || "",
       image: input.image || "",
+      url: input.url || "",
       sort_order: sortOrder,
     })
     .select("*")
@@ -66,13 +70,15 @@ export async function updatePartnership(
     name?: string;
     description?: string;
     image?: string;
+    url?: string;
   },
 ): Promise<Partnership> {
   const supabase = getSupabaseAdmin();
   const updates: Partial<PartnershipRow> = {};
-  if (input.name) updates.name = input.name;
+  if (input.name !== undefined) updates.name = input.name;
   if (input.description !== undefined) updates.description = input.description;
   if (input.image !== undefined) updates.image = input.image;
+  if (input.url !== undefined) updates.url = input.url;
 
   const { data, error } = await supabase
     .from("partnerships")
