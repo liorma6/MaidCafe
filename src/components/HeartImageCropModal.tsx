@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useId, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
 import {
-  getCroppedImageFile,
-  HEART_CROP_ASPECT,
-} from "@/lib/crop-image";
+  EVENT_HEART_ASPECT,
+  EVENT_HEART_PATH,
+  EVENT_HEART_VIEWBOX,
+} from "@/lib/event-heart-shape";
+import { getCroppedImageFile } from "@/lib/crop-image";
 
 interface Props {
   imageSrc: string;
@@ -26,6 +28,7 @@ export default function HeartImageCropModal({
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [saving, setSaving] = useState(false);
+  const maskId = useId().replace(/:/g, "");
 
   const onCropComplete = useCallback((_: Area, pixels: Area) => {
     setCroppedAreaPixels(pixels);
@@ -62,21 +65,46 @@ export default function HeartImageCropModal({
           גררו והתקרבו כדי שהתמונה תיכנס יפה בתוך הלב
         </p>
 
-        <div className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-2xl bg-pink-50">
+        <div
+          className="relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl bg-pink-50"
+          style={{ aspectRatio: `${EVENT_HEART_VIEWBOX.width} / ${EVENT_HEART_VIEWBOX.height}` }}
+        >
           <Cropper
             image={imageSrc}
             crop={crop}
             zoom={zoom}
-            aspect={HEART_CROP_ASPECT}
+            aspect={EVENT_HEART_ASPECT}
             onCropChange={setCrop}
             onZoomChange={setZoom}
             onCropComplete={onCropComplete}
             objectFit="horizontal-cover"
           />
-          <div
-            className="heart-crop-frame pointer-events-none absolute inset-0"
+          <svg
+            className="heart-crop-overlay pointer-events-none absolute inset-0 h-full w-full"
+            viewBox={`0 0 ${EVENT_HEART_VIEWBOX.width} ${EVENT_HEART_VIEWBOX.height}`}
+            preserveAspectRatio="none"
             aria-hidden
-          />
+          >
+            <defs>
+              <mask id={`heart-crop-cutout-${maskId}`}>
+                <rect width="100%" height="100%" fill="white" />
+                <path d={EVENT_HEART_PATH} fill="black" />
+              </mask>
+            </defs>
+            <rect
+              width="100%"
+              height="100%"
+              fill="rgba(255, 240, 245, 0.88)"
+              mask={`url(#heart-crop-cutout-${maskId})`}
+            />
+            <path
+              d={EVENT_HEART_PATH}
+              fill="none"
+              stroke="#ff69b4"
+              strokeWidth="2.5"
+              vectorEffect="non-scaling-stroke"
+            />
+          </svg>
         </div>
 
         <label className="mt-4 block text-sm font-semibold text-pink-600">

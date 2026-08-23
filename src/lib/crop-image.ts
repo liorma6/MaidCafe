@@ -48,6 +48,3 @@ export async function getCroppedImageFile(
 
   return new File([blob], fileName, { type: "image/jpeg" });
 }
-
-/** Aspect ratio (width/height) that fits the heart card frame */
-export const HEART_CROP_ASPECT = 1 / 1.05;

@@ -4,6 +4,7 @@ import type { EventAlbum } from "@/lib/types";
 import { formatEventDateRange } from "@/lib/date-utils";
 import { getEventDisplayCover } from "@/lib/event-utils";
 import { isRemoteImage } from "@/lib/image-utils";
+import EventHeartFrame from "@/components/EventHeartFrame";
 
 interface Props {
   event: EventAlbum;
@@ -18,7 +19,7 @@ export default function EventHeartCard({ event }: Props) {
       href={`/events/${event.id}`}
       className="event-heart-card group mx-auto block w-full max-w-sm transition hover:scale-[1.02]"
     >
-      <div className="heart-shape relative aspect-[1/1.05] overflow-hidden bg-pink-50">
+      <EventHeartFrame className="relative">
         <div className="checkered-bg absolute inset-0 opacity-25" />
 
         {cover ? (
@@ -47,7 +48,7 @@ export default function EventHeartCard({ event }: Props) {
             {event.title}
           </p>
         </div>
-      </div>
+      </EventHeartFrame>
     </Link>
   );
 }
