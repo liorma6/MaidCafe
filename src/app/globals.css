@@ -171,7 +171,7 @@ textarea.admin-input {
   color: white;
 }
 
-/* Team heart card */
+/* Shared heart shape (team cards + event albums) */
 .heart-shape {
   border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
   border: 4px solid #ff85c1;
@@ -394,4 +394,16 @@ html.a11y-high-contrast img {
   75% {
     transform: translateY(-12px) rotate(-1deg);
   }
+}
+
+/* Event album heart crop overlay (admin) */
+.heart-crop-frame {
+  inset: 10%;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  border: 3px solid #ff69b4;
+  box-shadow: 0 0 0 9999px rgba(255, 240, 245, 0.88);
+}
+
+.event-heart-card .heart-shape {
+  border-width: 5px;
 }

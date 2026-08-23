@@ -1,5 +1,5 @@
+import EventHeartCard from "@/components/EventHeartCard";
 import { getEvents } from "@/lib/db/events";
-import EventAlbumCard from "@/components/EventAlbumCard";
 
 export const dynamic = "force-dynamic";
 
@@ -23,9 +23,9 @@ export default async function EventsPage() {
           <p className="mt-4 text-pink-500">עדיין אין אלבומים — בקרוב!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {events.map((event) => (
-            <EventAlbumCard key={event.id} event={event} />
+            <EventHeartCard key={event.id} event={event} />
           ))}
         </div>
       )}

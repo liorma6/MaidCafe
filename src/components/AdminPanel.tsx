@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import FileUploadButton from "@/components/FileUploadButton";
+import HeartImageCropModal from "@/components/HeartImageCropModal";
 import LinkifiedText from "@/components/LinkifiedText";
 import {
   uploadEventFile,
@@ -258,6 +259,24 @@ function EventsTab({
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<string | null>(null);
+  const [cropState, setCropState] = useState<{
+    src: string;
+    onDone: (file: File) => void;
+  } | null>(null);
+
+  const closeCrop = () => {
+    if (cropState?.src.startsWith("blob:")) {
+      URL.revokeObjectURL(cropState.src);
+    }
+    setCropState(null);
+  };
+
+  const openHeartCrop = (file: File, onDone: (cropped: File) => void) => {
+    setCropState({
+      src: URL.createObjectURL(file),
+      onDone,
+    });
+  };
 
   const buildUploadQueue = (
     cover: File | null,
@@ -340,9 +359,23 @@ function EventsTab({
   };
 
   const handleCoverSelect = (file: File | null) => {
-    setCoverFile(file);
-    if (coverPreview) URL.revokeObjectURL(coverPreview);
-    setCoverPreview(file ? URL.createObjectURL(file) : null);
+    if (!file) {
+      setCoverFile(null);
+      if (coverPreview) URL.revokeObjectURL(coverPreview);
+      setCoverPreview(null);
+      return;
+    }
+    openHeartCrop(file, (cropped) => {
+      setCoverFile(cropped);
+      if (coverPreview) URL.revokeObjectURL(coverPreview);
+      setCoverPreview(URL.createObjectURL(cropped));
+    });
+  };
+
+  const handleCoverReplace = (eventId: string, file: File) => {
+    openHeartCrop(file, (cropped) => {
+      handleUploadMany(eventId, [cropped], "cover");
+    });
   };
 
   const handleUploadMany = async (
@@ -542,19 +575,26 @@ function EventsTab({
           <p className="text-sm font-bold text-pink-700">תמונות האירוע</p>
 
           <FileUploadButton
-            label="🖼️ תמונה ראשית"
-            hint="כריכת האלבום — מופיעה ברשימת האירועים"
+            label="🖼️ תמונה ראשית (לב)"
+            hint="ייפתח חיתוך — התמונה תופיע בתוך לב ברשימת האירועים"
             onChange={(files) => handleCoverSelect(files[0] || null)}
             selectedLabel={
               coverFile ? `נבחר: ${coverFile.name}` : undefined
             }
           />
           {coverPreview && (
-            <img
-              src={coverPreview}
-              alt="תצוגה מקדימה"
-              className="h-32 w-32 rounded-xl border-2 border-pink-300 object-cover"
-            />
+            <div className="mx-auto w-full max-w-[200px]">
+              <div className="heart-shape relative aspect-[1/1.05] overflow-hidden border-4 border-pink-300">
+                <img
+                  src={coverPreview}
+                  alt="תצוגה מקדימה"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <p className="mt-2 text-center text-xs text-pink-500">
+                תצוגה מקדימה — לב
+              </p>
+            </div>
           )}
 
           <FileUploadButton
@@ -690,11 +730,11 @@ function EventsTab({
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <div className="min-w-[220px] flex-1">
               <FileUploadButton
-                label="🖼️ תמונה ראשית"
-                hint="החלפת כריכת האלבום"
+                label="🖼️ תמונה ראשית (לב)"
+                hint="חיתוך ללב — מחליף את כריכת האלבום"
                 onChange={(files) => {
                   const file = files[0];
-                  if (file) handleUploadMany(event.id, [file], "cover");
+                  if (file) handleCoverReplace(event.id, file);
                 }}
               />
             </div>
@@ -733,6 +773,18 @@ function EventsTab({
           </div>
         </div>
       ))}
+
+      {cropState && (
+        <HeartImageCropModal
+          imageSrc={cropState.src}
+          open
+          onClose={closeCrop}
+          onConfirm={(file) => {
+            cropState.onDone(file);
+            closeCrop();
+          }}
+        />
+      )}
     </div>
   );
 }
