@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import FileUploadButton from "@/components/FileUploadButton";
-import EventHeartFrame from "@/components/EventHeartFrame";
 import HeartImageCropModal from "@/components/HeartImageCropModal";
 import LinkifiedText from "@/components/LinkifiedText";
 import {
@@ -605,13 +604,13 @@ function EventsTab({
           />
           {coverPreview && (
             <div className="mx-auto w-full max-w-[200px]">
-              <EventHeartFrame className="relative">
+              <div className="heart-shape relative aspect-[1/1.05] overflow-hidden border-4 border-pink-300">
                 <img
                   src={coverPreview}
                   alt="תצוגה מקדימה"
-                  className="absolute inset-0 h-full w-full object-cover"
+                  className="h-full w-full object-cover"
                 />
-              </EventHeartFrame>
+              </div>
               <p className="mt-2 text-center text-xs text-pink-500">
                 תצוגה מקדימה — לב
               </p>
@@ -667,15 +666,11 @@ function EventsTab({
           <div className="mb-4 flex items-start justify-between gap-4">
             <div className="flex gap-4">
               {event.coverImage ? (
-                <div className="w-28 shrink-0">
-                  <EventHeartFrame className="relative">
-                    <img
-                      src={event.coverImage}
-                      alt=""
-                      className="absolute inset-0 h-full w-full object-cover"
-                    />
-                  </EventHeartFrame>
-                </div>
+                <img
+                  src={event.coverImage}
+                  alt=""
+                  className="heart-shape h-24 w-24 shrink-0 border-4 border-pink-300 object-cover"
+                />
               ) : (
                 <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-pink-200 bg-pink-50 text-2xl text-pink-300">
                   📸
