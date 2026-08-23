@@ -1,11 +1,7 @@
-import Image from "next/image";
 import { getEvents } from "@/lib/db/events";
+import EventAlbumCard from "@/components/EventAlbumCard";
 
 export const dynamic = "force-dynamic";
-
-function isRemoteImage(src: string): boolean {
-  return src.startsWith("http://") || src.startsWith("https://");
-}
 
 export default async function EventsPage() {
   const events = await getEvents();
@@ -17,50 +13,21 @@ export default async function EventsPage() {
           אירועים שהיו
         </h1>
         <p className="mt-3 text-pink-500">
-          רגעים מתוקים מהפופ-אפים והאירועים שלנו ♡
+          האלבומים שלנו — לחצו על אירוע לצפייה בכל התמונות ♡
         </p>
       </div>
 
       {events.length === 0 ? (
         <div className="kawaii-card p-12 text-center">
           <p className="text-4xl">📸</p>
-          <p className="mt-4 text-pink-500">עדיין אין תמונות — בקרוב!</p>
+          <p className="mt-4 text-pink-500">עדיין אין אלבומים — בקרוב!</p>
         </div>
       ) : (
-        events.map((event) => (
-          <section key={event.id} className="kawaii-card p-6">
-            <h2 className="text-xl font-bold text-pink-700">{event.title}</h2>
-            <p className="text-sm text-pink-400">
-              {new Date(event.date).toLocaleDateString("he-IL", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
-            {event.description && (
-              <p className="mt-2 text-pink-800/70">{event.description}</p>
-            )}
-            {event.images.length > 0 && (
-              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                {event.images.map((img) => (
-                  <div
-                    key={img}
-                    className="relative aspect-square overflow-hidden rounded-xl border-2 border-pink-200"
-                  >
-                    <Image
-                      src={img}
-                      alt={event.title}
-                      fill
-                      className="object-cover transition hover:scale-110"
-                      sizes="(max-width: 768px) 50vw, 25vw"
-                      unoptimized={isRemoteImage(img)}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        ))
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          {events.map((event) => (
+            <EventAlbumCard key={event.id} event={event} />
+          ))}
+        </div>
       )}
     </div>
   );

@@ -249,10 +249,15 @@ function EventsTab({
     setLoading(false);
   };
 
-  const handleUpload = async (eventId: string, file: File) => {
+  const handleUpload = async (
+    eventId: string,
+    file: File,
+    type: "cover" | "gallery",
+  ) => {
     const formData = new FormData();
     formData.append("eventId", eventId);
     formData.append("file", file);
+    formData.append("type", type);
     const res = await fetch("/api/events/upload", {
       method: "POST",
       body: formData,
@@ -263,7 +268,28 @@ function EventsTab({
         ...d,
         events: d.events.map((e) => (e.id === eventId ? event : e)),
       }));
-      showMessage("תמונה הועלתה! ♡");
+      showMessage(type === "cover" ? "תמונה ראשית הועלתה! ♡" : "תמונה הועלתה! ♡");
+    }
+  };
+
+  const handleRemoveCover = async (event: EventAlbum) => {
+    if (!event.coverImage) return;
+    const res = await fetch("/api/events/upload", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        eventId: event.id,
+        imagePath: event.coverImage,
+        type: "cover",
+      }),
+    });
+    if (res.ok) {
+      const { event: updated } = await res.json();
+      setData((d) => ({
+        ...d,
+        events: d.events.map((e) => (e.id === event.id ? updated : e)),
+      }));
+      showMessage("תמונה ראשית הוסרה");
     }
   };
 
@@ -312,17 +338,33 @@ function EventsTab({
 
       {events.map((event) => (
         <div key={event.id} className="kawaii-card p-6">
-          <div className="mb-4 flex items-start justify-between">
-            <div>
-              <h3 className="font-bold text-pink-700">{event.title}</h3>
-              <p className="text-sm text-pink-500">{event.date}</p>
-              {event.description && (
-                <p className="mt-1 text-sm text-pink-800/70">{event.description}</p>
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div className="flex gap-4">
+              {event.coverImage ? (
+                <img
+                  src={event.coverImage}
+                  alt=""
+                  className="h-24 w-24 shrink-0 rounded-xl border-2 border-pink-300 object-cover"
+                />
+              ) : (
+                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-pink-200 bg-pink-50 text-2xl text-pink-300">
+                  📸
+                </div>
               )}
+              <div>
+                <h3 className="font-bold text-pink-700">{event.title}</h3>
+                <p className="text-sm text-pink-500">{event.date}</p>
+                {event.description && (
+                  <p className="mt-1 text-sm text-pink-800/70">{event.description}</p>
+                )}
+                <p className="mt-1 text-xs text-pink-400">
+                  {event.images.length} תמונות בגלריה
+                </p>
+              </div>
             </div>
             <button
               onClick={() => handleDelete(event.id)}
-              className="text-sm text-red-400 hover:text-red-600"
+              className="shrink-0 text-sm text-red-400 hover:text-red-600"
             >
               מחק
             </button>
@@ -334,26 +376,51 @@ function EventsTab({
                 key={img}
                 src={img}
                 alt=""
-                className="h-20 w-20 rounded-lg object-cover"
+                className="h-20 w-20 rounded-lg border border-pink-200 object-cover"
               />
             ))}
           </div>
 
-          <label className="admin-btn inline-block cursor-pointer">
-            📸 העלאת תמונות
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={(e) => {
-                const files = e.target.files;
-                if (files) {
-                  Array.from(files).forEach((f) => handleUpload(event.id, f));
-                }
-              }}
-            />
-          </label>
+          <div className="flex flex-wrap gap-3">
+            <label className="admin-btn inline-block cursor-pointer text-sm">
+              🖼️ תמונה ראשית
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleUpload(event.id, file, "cover");
+                }}
+              />
+            </label>
+            {event.coverImage && (
+              <button
+                type="button"
+                onClick={() => handleRemoveCover(event)}
+                className="rounded-full bg-pink-100 px-4 py-2 text-sm text-pink-700 hover:bg-pink-200"
+              >
+                הסר תמונה ראשית
+              </button>
+            )}
+            <label className="cursor-pointer rounded-full bg-pink-100 px-4 py-2 text-sm font-semibold text-pink-700 hover:bg-pink-200">
+              📸 תמונות לגלריה
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (files) {
+                    Array.from(files).forEach((f) =>
+                      handleUpload(event.id, f, "gallery"),
+                    );
+                  }
+                }}
+              />
+            </label>
+          </div>
         </div>
       ))}
     </div>
@@ -511,6 +578,12 @@ function TeamTab({
   showMessage: (t: string) => void;
 }) {
   const [editing, setEditing] = useState<TeamMember | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newRole, setNewRole] = useState("מייד");
+  const [newCatchphrase, setNewCatchphrase] = useState("");
+  const [newImage, setNewImage] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSave = async () => {
     if (!editing) return;
@@ -530,8 +603,105 @@ function TeamTab({
     }
   };
 
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newImage) return;
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("name", newName);
+    formData.append("role", newRole);
+    formData.append("catchphrase", newCatchphrase);
+    formData.append("file", newImage);
+
+    const res = await fetch("/api/team", { method: "POST", body: formData });
+    if (res.ok) {
+      const member = await res.json();
+      setData((d) => ({ ...d, team: [...d.team, member] }));
+      setNewName("");
+      setNewRole("מייד");
+      setNewCatchphrase("");
+      setNewImage(null);
+      setCreating(false);
+      showMessage("חבר/ת צוות חדש/ה נוסף/ה! ♡");
+    } else {
+      const data = await res.json();
+      showMessage(data.error || "שגיאה בהוספה");
+    }
+    setLoading(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("למחוק את חבר/ת הצוות?")) return;
+    const res = await fetch("/api/team", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      setData((d) => ({ ...d, team: d.team.filter((t) => t.id !== id) }));
+      showMessage("חבר/ת צוות נמחק/ה");
+    }
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {!creating ? (
+        <button
+          type="button"
+          onClick={() => setCreating(true)}
+          className="admin-btn"
+        >
+          + הוספת חבר/ת צוות חדש/ה ♡
+        </button>
+      ) : (
+        <form onSubmit={handleCreate} className="kawaii-card space-y-4 p-6">
+          <h2 className="text-lg font-bold text-pink-700">חבר/ת צוות חדש/ה</h2>
+          <input
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="שם"
+            className="admin-input"
+            required
+          />
+          <input
+            value={newRole}
+            onChange={(e) => setNewRole(e.target.value)}
+            placeholder="תפקיד (למשל: מייד)"
+            className="admin-input"
+            required
+          />
+          <input
+            value={newCatchphrase}
+            onChange={(e) => setNewCatchphrase(e.target.value)}
+            placeholder="משפט תפיסה"
+            className="admin-input"
+            required
+          />
+          <label className="block text-sm text-pink-600">
+            תמונה מצויירת (חובה)
+            <input
+              type="file"
+              accept="image/*"
+              className="mt-1 block w-full text-sm"
+              onChange={(e) => setNewImage(e.target.files?.[0] || null)}
+              required
+            />
+          </label>
+          <div className="flex gap-2">
+            <button type="submit" disabled={loading} className="admin-btn">
+              {loading ? "מוסיף..." : "הוסף לצוות ♡"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setCreating(false)}
+              className="rounded-full bg-pink-100 px-4 py-2 text-sm text-pink-700"
+            >
+              ביטול
+            </button>
+          </div>
+        </form>
+      )}
+
       {team.map((member) => (
         <div key={member.id} className="kawaii-card p-4">
           {editing?.id === member.id ? (
@@ -573,12 +743,12 @@ function TeamTab({
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <img
                   src={member.image}
                   alt={member.name}
-                  className="h-16 w-16 rounded-full object-cover"
+                  className="h-16 w-16 rounded-full border-2 border-pink-200 object-cover"
                 />
                 <div>
                   <h3 className="font-bold text-pink-700">{member.name}</h3>
@@ -586,12 +756,20 @@ function TeamTab({
                   <p className="text-sm text-pink-800/70">{member.catchphrase}</p>
                 </div>
               </div>
-              <button
-                onClick={() => setEditing(member)}
-                className="text-sm text-pink-500 hover:text-pink-700"
-              >
-                עריכה
-              </button>
+              <div className="flex shrink-0 flex-col gap-2">
+                <button
+                  onClick={() => setEditing(member)}
+                  className="text-sm text-pink-500 hover:text-pink-700"
+                >
+                  עריכה
+                </button>
+                <button
+                  onClick={() => handleDelete(member.id)}
+                  className="text-sm text-red-400 hover:text-red-600"
+                >
+                  מחק
+                </button>
+              </div>
             </div>
           )}
         </div>

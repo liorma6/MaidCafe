@@ -6,6 +6,9 @@ interface Props {
 }
 
 export default function TeamCard({ member }: Props) {
+  const isRemote =
+    member.image.startsWith("http://") || member.image.startsWith("https://");
+
   return (
     <article className="team-heart-card group relative mx-auto w-full max-w-sm">
       <div className="heart-shape relative overflow-hidden bg-pink-50 p-6 pt-8">
@@ -19,6 +22,7 @@ export default function TeamCard({ member }: Props) {
               fill
               className="object-cover object-top"
               sizes="144px"
+              unoptimized={isRemote}
             />
           </div>
 

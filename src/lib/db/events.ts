@@ -6,6 +6,7 @@ type EventRow = {
   title: string;
   date: string;
   description: string | null;
+  cover_image: string | null;
 };
 
 type EventImageRow = {
@@ -15,7 +16,24 @@ type EventImageRow = {
   sort_order: number;
 };
 
-export async function getEvents(): Promise<EventAlbum[]> {
+function mapEvent(
+  event: EventRow,
+  images: string[],
+): EventAlbum {
+  return {
+    id: event.id,
+    title: event.title,
+    date: event.date,
+    description: event.description || "",
+    coverImage: event.cover_image || "",
+    images,
+  };
+}
+
+async function fetchEventsWithImages(): Promise<{
+  events: EventRow[];
+  imagesByEvent: Map<string, string[]>;
+}> {
   const supabase = getSupabaseAdmin();
   const { data: events, error: eventsError } = await supabase
     .from("events")
@@ -23,7 +41,7 @@ export async function getEvents(): Promise<EventAlbum[]> {
     .order("date", { ascending: false });
 
   if (eventsError) throw new Error(eventsError.message);
-  if (!events?.length) return [];
+  if (!events?.length) return { events: [], imagesByEvent: new Map() };
 
   const eventIds = events.map((event) => event.id);
   const { data: images, error: imagesError } = await supabase
@@ -41,13 +59,36 @@ export async function getEvents(): Promise<EventAlbum[]> {
     imagesByEvent.set(image.event_id, list);
   }
 
-  return (events as EventRow[]).map((event) => ({
-    id: event.id,
-    title: event.title,
-    date: event.date,
-    description: event.description || "",
-    images: imagesByEvent.get(event.id) || [],
-  }));
+  return { events: events as EventRow[], imagesByEvent };
+}
+
+export async function getEvents(): Promise<EventAlbum[]> {
+  const { events, imagesByEvent } = await fetchEventsWithImages();
+  return events.map((event) =>
+    mapEvent(event, imagesByEvent.get(event.id) || []),
+  );
+}
+
+export async function getEventById(id: string): Promise<EventAlbum | null> {
+  const supabase = getSupabaseAdmin();
+  const { data: event, error } = await supabase
+    .from("events")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !event) return null;
+
+  const { data: images, error: imagesError } = await supabase
+    .from("event_images")
+    .select("*")
+    .eq("event_id", id)
+    .order("sort_order", { ascending: true });
+
+  if (imagesError) throw new Error(imagesError.message);
+
+  const gallery = ((images || []) as EventImageRow[]).map((img) => img.url);
+  return mapEvent(event as EventRow, gallery);
 }
 
 export async function createEvent(input: {
@@ -62,19 +103,13 @@ export async function createEvent(input: {
       title: input.title,
       date: input.date,
       description: input.description || "",
+      cover_image: "",
     })
     .select("*")
     .single();
 
   if (error) throw new Error(error.message);
-  const event = data as EventRow;
-  return {
-    id: event.id,
-    title: event.title,
-    date: event.date,
-    description: event.description || "",
-    images: [],
-  };
+  return mapEvent(data as EventRow, []);
 }
 
 export async function updateEvent(
@@ -87,22 +122,29 @@ export async function updateEvent(
   if (input.date) updates.date = input.date;
   if (input.description !== undefined) updates.description = input.description;
 
-  const { data, error } = await supabase
+  const { error } = await supabase.from("events").update(updates).eq("id", id);
+  if (error) throw new Error(error.message);
+
+  const event = await getEventById(id);
+  if (!event) throw new Error("אירוע לא נמצא");
+  return event;
+}
+
+export async function updateEventCover(
+  id: string,
+  coverImage: string,
+): Promise<EventAlbum> {
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase
     .from("events")
-    .update(updates)
-    .eq("id", id)
-    .select("*")
-    .single();
+    .update({ cover_image: coverImage })
+    .eq("id", id);
 
   if (error) throw new Error(error.message);
-  const events = await getEvents();
-  return events.find((event) => event.id === id) || {
-    id: data.id,
-    title: data.title,
-    date: data.date,
-    description: data.description || "",
-    images: [],
-  };
+
+  const event = await getEventById(id);
+  if (!event) throw new Error("אירוע לא נמצא");
+  return event;
 }
 
 export async function deleteEvent(id: string): Promise<void> {
@@ -136,8 +178,7 @@ export async function addEventImage(
 
   if (error) throw new Error(error.message);
 
-  const events = await getEvents();
-  const event = events.find((item) => item.id === eventId);
+  const event = await getEventById(eventId);
   if (!event) throw new Error("אירוע לא נמצא");
   return event;
 }

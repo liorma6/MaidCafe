@@ -15,6 +15,7 @@ create table if not exists events (
   title text not null,
   date date not null default current_date,
   description text not null default '',
+  cover_image text not null default '',
   created_at timestamptz not null default now()
 );
 

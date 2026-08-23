@@ -75,20 +75,35 @@ export default function Footer() {
           </div>
 
           <div className="flex flex-col items-center justify-center">
-            <Image
-              src="/images/logo.png"
-              alt={SITE_NAME}
-              width={160}
-              height={160}
-              className="drop-shadow-lg"
-            />
+            <Link href="/" className="transition hover:scale-105">
+              <Image
+                src="/images/logo.png"
+                alt={SITE_NAME}
+                width={160}
+                height={160}
+                className="drop-shadow-lg"
+              />
+            </Link>
             <p className="mt-2 text-center text-sm text-pink-500">
               Maid & Butler — חוויה יפנית מתוקה באירועים
             </p>
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col items-center gap-2 border-t border-pink-100 pt-4">
+        <div className="mt-8 flex flex-col items-center gap-3 border-t border-pink-100 pt-4">
+          <nav className="flex flex-wrap items-center justify-center gap-2 text-xs text-pink-500">
+            <Link href="/terms" className="hover:text-pink-700 hover:underline">
+              תנאי שימוש
+            </Link>
+            <span aria-hidden="true">|</span>
+            <Link href="/privacy" className="hover:text-pink-700 hover:underline">
+              מדיניות פרטיות
+            </Link>
+            <span aria-hidden="true">|</span>
+            <Link href="/accessibility" className="hover:text-pink-700 hover:underline">
+              הצהרת נגישות
+            </Link>
+          </nav>
           <p className="text-xs text-pink-400">
             © {new Date().getFullYear()} {SITE_NAME}. כל הזכויות שמורות.
           </p>

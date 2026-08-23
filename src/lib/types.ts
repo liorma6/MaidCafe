@@ -11,6 +11,7 @@ export interface EventAlbum {
   title: string;
   date: string;
   description?: string;
+  coverImage: string;
   images: string[];
 }
 

@@ -160,3 +160,61 @@ textarea.admin-input {
 
 .section-title::before { right: calc(100% + 0.5rem); }
 .section-title::after { left: calc(100% + 0.5rem); }
+
+/* Accessibility modes */
+html.a11y-large-font {
+  font-size: 118.75%;
+}
+
+html.a11y-high-contrast {
+  --background: #000000;
+  --foreground: #ffffff;
+  --pink-light: #1a1a1a;
+  --pink-soft: #333333;
+  --pink-main: #ffffff;
+  --pink-dark: #ffff00;
+}
+
+html.a11y-high-contrast body,
+html.a11y-high-contrast .page-wrapper {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+html.a11y-high-contrast .main-content {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #fff !important;
+}
+
+html.a11y-high-contrast .kawaii-card,
+html.a11y-high-contrast header,
+html.a11y-high-contrast footer {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #fff !important;
+}
+
+html.a11y-high-contrast .text-pink-600,
+html.a11y-high-contrast .text-pink-700,
+html.a11y-high-contrast .text-pink-500,
+html.a11y-high-contrast .text-pink-800,
+html.a11y-high-contrast .text-pink-400,
+html.a11y-high-contrast .text-pink-900 {
+  color: #fff !important;
+}
+
+html.a11y-high-contrast .bg-pink-100,
+html.a11y-high-contrast .bg-pink-500 {
+  background: #333 !important;
+  color: #fff !important;
+}
+
+html.a11y-high-contrast .admin-btn {
+  background: #fff !important;
+  color: #000 !important;
+}
+
+html.a11y-high-contrast img {
+  filter: grayscale(1) contrast(1.2);
+}

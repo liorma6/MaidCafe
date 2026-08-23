@@ -51,3 +51,57 @@ export async function updateTeamMember(
   if (error) throw new Error(error.message);
   return mapTeamMember(data as TeamRow);
 }
+
+export async function createTeamMember(input: {
+  name: string;
+  role: string;
+  catchphrase: string;
+  image: string;
+}): Promise<TeamMember> {
+  const supabase = getSupabaseAdmin();
+  const { data: existing } = await supabase
+    .from("team_members")
+    .select("sort_order")
+    .order("sort_order", { ascending: false })
+    .limit(1);
+
+  const nextOrder =
+    existing && existing.length > 0 ? (existing[0].sort_order as number) + 1 : 1;
+
+  const { data, error } = await supabase
+    .from("team_members")
+    .insert({
+      name: input.name,
+      role: input.role,
+      catchphrase: input.catchphrase,
+      image: input.image,
+      sort_order: nextOrder,
+    })
+    .select("*")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return mapTeamMember(data as TeamRow);
+}
+
+export async function deleteTeamMember(id: string): Promise<void> {
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase.from("team_members").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function updateTeamMemberImage(
+  id: string,
+  image: string,
+): Promise<TeamMember> {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("team_members")
+    .update({ image })
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return mapTeamMember(data as TeamRow);
+}

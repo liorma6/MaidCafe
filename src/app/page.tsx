@@ -12,7 +12,7 @@ export default async function HomePage() {
   return (
     <div className="space-y-10">
       <section className="text-center">
-        <div className="hero-sparkle mx-auto mb-6 w-fit">
+        <Link href="/" className="hero-sparkle mx-auto mb-6 block w-fit transition hover:scale-105">
           <Image
             src="/images/logo.png"
             alt="Unique Maid Cafe"
@@ -21,7 +21,7 @@ export default async function HomePage() {
             className="mx-auto drop-shadow-xl"
             priority
           />
-        </div>
+        </Link>
         <h1 className="text-3xl font-bold text-pink-600 md:text-4xl">
           ברוכים הבאים ל-Unique Maid Cafe!
         </h1>
