@@ -229,24 +229,78 @@ function EventsTab({
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+
+  const uploadFiles = async (
+    eventId: string,
+    cover: File | null,
+    gallery: File[],
+  ): Promise<EventAlbum | null> => {
+    let latest: EventAlbum | null = null;
+
+    if (cover) {
+      const formData = new FormData();
+      formData.append("eventId", eventId);
+      formData.append("file", cover);
+      formData.append("type", "cover");
+      const res = await fetch("/api/events/upload", { method: "POST", body: formData });
+      if (res.ok) {
+        const data = await res.json();
+        latest = data.event;
+      }
+    }
+
+    for (const file of gallery) {
+      const formData = new FormData();
+      formData.append("eventId", eventId);
+      formData.append("file", file);
+      formData.append("type", "gallery");
+      const res = await fetch("/api/events/upload", { method: "POST", body: formData });
+      if (res.ok) {
+        const data = await res.json();
+        latest = data.event;
+      }
+    }
+
+    return latest;
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
     const res = await fetch("/api/events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, date, description }),
     });
+
     if (res.ok) {
-      const item = await res.json();
+      let item: EventAlbum = await res.json();
+      const withImages = await uploadFiles(item.id, coverFile, galleryFiles);
+      if (withImages) item = withImages;
+
       setData((d) => ({ ...d, events: [item, ...d.events] }));
       setTitle("");
       setDate("");
       setDescription("");
-      showMessage("אירוע נוצר! עכשיו אפשר להעלות תמונות 📸");
+      setCoverFile(null);
+      setGalleryFiles([]);
+      setCoverPreview(null);
+      showMessage("אירוע נוצר בהצלחה! ♡");
+    } else {
+      const data = await res.json();
+      showMessage(data.error || "שגיאה ביצירת אירוע");
     }
     setLoading(false);
+  };
+
+  const handleCoverSelect = (file: File | null) => {
+    setCoverFile(file);
+    if (coverPreview) URL.revokeObjectURL(coverPreview);
+    setCoverPreview(file ? URL.createObjectURL(file) : null);
   };
 
   const handleUpload = async (
@@ -331,8 +385,48 @@ function EventsTab({
           rows={2}
           className="admin-input"
         />
+
+        <div className="space-y-3 rounded-2xl border-2 border-dashed border-pink-200 bg-pink-50/50 p-4">
+          <p className="text-sm font-bold text-pink-700">תמונות האירוע</p>
+
+          <label className="block text-sm text-pink-600">
+            🖼️ תמונה ראשית (כריכת האלבום)
+            <input
+              type="file"
+              accept="image/*"
+              className="mt-1 block w-full text-sm"
+              onChange={(e) => handleCoverSelect(e.target.files?.[0] || null)}
+            />
+          </label>
+          {coverPreview && (
+            <img
+              src={coverPreview}
+              alt="תצוגה מקדימה"
+              className="h-32 w-32 rounded-xl border-2 border-pink-300 object-cover"
+            />
+          )}
+
+          <label className="block text-sm text-pink-600">
+            📸 תמונות לגלריה (אפשר לבחור כמה)
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="mt-1 block w-full text-sm"
+              onChange={(e) =>
+                setGalleryFiles(e.target.files ? Array.from(e.target.files) : [])
+              }
+            />
+          </label>
+          {galleryFiles.length > 0 && (
+            <p className="text-xs text-pink-400">
+              נבחרו {galleryFiles.length} תמונות לגלריה
+            </p>
+          )}
+        </div>
+
         <button type="submit" disabled={loading} className="admin-btn">
-          {loading ? "יוצר..." : "צור אירוע"}
+          {loading ? "יוצר..." : "צור אירוע ♡"}
         </button>
       </form>
 
