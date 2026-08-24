@@ -163,7 +163,7 @@ export async function updateEvent(
 ): Promise<EventAlbum> {
   const supabase = getSupabaseAdmin();
   const updates: Partial<EventRow> = {};
-  if (input.title) updates.title = input.title;
+  if (input.title !== undefined) updates.title = input.title;
   if (input.date) updates.date = input.date;
   if (input.endDate !== undefined) updates.end_date = input.endDate || null;
   if (input.description !== undefined) updates.description = input.description;

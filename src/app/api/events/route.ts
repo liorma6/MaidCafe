@@ -80,6 +80,10 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "חסר מזהה" }, { status: 400 });
     }
 
+    if (title !== undefined && !title.trim()) {
+      return NextResponse.json({ error: "נא למלא שם אירוע" }, { status: 400 });
+    }
+
     const event = await updateEvent(id, {
       title: title?.trim(),
       date,

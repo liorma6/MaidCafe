@@ -479,6 +479,7 @@ function EventsTab({
     src: string;
     onDone: (file: File) => void;
   } | null>(null);
+  const [editing, setEditing] = useState<EventAlbum | null>(null);
 
   const closeCrop = () => {
     if (cropState?.src.startsWith("blob:")) {
@@ -750,6 +751,38 @@ function EventsTab({
     }
   };
 
+  const handleSaveDetails = async () => {
+    if (!editing) return;
+    if (!editing.title.trim()) {
+      showMessage("נא למלא שם אירוע");
+      return;
+    }
+
+    setLoading(true);
+    const res = await fetch("/api/events", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: editing.id,
+        title: editing.title.trim(),
+        description: (editing.description || "").trim(),
+      }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      setData((d) => ({
+        ...d,
+        events: d.events.map((e) => (e.id === updated.id ? updated : e)),
+      }));
+      setEditing(null);
+      showMessage("פרטי האירוע עודכנו! ♡");
+    } else {
+      const data = await res.json().catch(() => ({}));
+      showMessage(data.error || "שגיאה בעדכון");
+    }
+    setLoading(false);
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("למחוק את האירוע?")) return;
     await fetch("/api/events", {
@@ -892,29 +925,81 @@ function EventsTab({
                   📸
                 </div>
               )}
-              <div>
-                <h3 className="font-bold text-pink-700">{event.title}</h3>
-                <p className="text-sm text-pink-500">
-                  {formatEventDateRange(event.date, event.endDate)}
-                </p>
-                <EventDateEditor
-                  event={event}
-                  onSave={(start, end) => handleUpdateDates(event.id, start, end)}
-                />
-                {event.description && (
-                  <p className="mt-1 text-sm text-pink-800/70">{event.description}</p>
+              <div className="min-w-0 flex-1">
+                {editing?.id === event.id ? (
+                  <div className="space-y-3">
+                    <input
+                      value={editing.title}
+                      onChange={(e) =>
+                        setEditing({ ...editing, title: e.target.value })
+                      }
+                      placeholder="שם האירוע"
+                      className="admin-input"
+                    />
+                    <textarea
+                      value={editing.description || ""}
+                      onChange={(e) =>
+                        setEditing({ ...editing, description: e.target.value })
+                      }
+                      placeholder="תיאור (אופציונלי)"
+                      rows={3}
+                      className="admin-input"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={handleSaveDetails}
+                        disabled={loading}
+                        className="admin-btn text-sm"
+                      >
+                        {loading ? "שומר..." : "שמור שינויים"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditing(null)}
+                        className="rounded-full bg-pink-100 px-4 py-2 text-sm font-semibold text-pink-700 hover:bg-pink-200"
+                      >
+                        ביטול
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <h3 className="font-bold text-pink-700">{event.title}</h3>
+                    <p className="text-sm text-pink-500">
+                      {formatEventDateRange(event.date, event.endDate)}
+                    </p>
+                    <EventDateEditor
+                      event={event}
+                      onSave={(start, end) => handleUpdateDates(event.id, start, end)}
+                    />
+                    {event.description && (
+                      <p className="mt-1 text-sm text-pink-800/70">{event.description}</p>
+                    )}
+                    <p className="mt-1 text-xs text-pink-400">
+                      {event.images.length} תמונות · {event.videos.length} סרטונים
+                    </p>
+                  </>
                 )}
-                <p className="mt-1 text-xs text-pink-400">
-                  {event.images.length} תמונות · {event.videos.length} סרטונים
-                </p>
               </div>
             </div>
-            <button
-              onClick={() => handleDelete(event.id)}
-              className="shrink-0 text-sm text-red-400 hover:text-red-600"
-            >
-              מחק
-            </button>
+            <div className="flex shrink-0 flex-col gap-2">
+              {editing?.id !== event.id && (
+                <button
+                  type="button"
+                  onClick={() => setEditing(event)}
+                  className="text-sm text-pink-600 hover:text-pink-800"
+                >
+                  ערוך
+                </button>
+              )}
+              <button
+                onClick={() => handleDelete(event.id)}
+                className="text-sm text-red-400 hover:text-red-600"
+              >
+                מחק
+              </button>
+            </div>
           </div>
 
           <div className="mb-3 flex flex-wrap gap-2">
