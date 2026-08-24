@@ -7,7 +7,10 @@ create table if not exists announcements (
   title text not null,
   content text not null,
   created_at timestamptz not null default now(),
-  active boolean not null default true
+  active boolean not null default true,
+  pinned boolean not null default false,
+  category text not null default '',
+  sort_order int not null default 0
 );
 
 create table if not exists events (
@@ -43,6 +46,7 @@ create table if not exists merch (
   price text not null default '',
   image text not null default '',
   available boolean not null default true,
+  sort_order int not null default 0,
   created_at timestamptz not null default now()
 );
 
@@ -65,6 +69,21 @@ create table if not exists partnerships (
   sort_order int not null default 0,
   created_at timestamptz not null default now()
 );
+
+create table if not exists about_page (
+  id text primary key default 'main',
+  title text not null default 'מי אנחנו',
+  content text not null default '',
+  updated_at timestamptz not null default now()
+);
+
+insert into about_page (id, title, content)
+values (
+  'main',
+  'מי אנחנו',
+  'Unique Maid Cafe הוא מייד קפה ישראלי בקונספט יפני. אנחנו מגיעים לאירועים, פסטיבלים וכנסים ומביאים חוויה kawaii מתוקה לקהל.'
+)
+on conflict (id) do nothing;
 
 create index if not exists idx_event_images_event_id on event_images(event_id);
 create index if not exists idx_announcements_active on announcements(active);

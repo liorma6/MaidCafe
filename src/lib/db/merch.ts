@@ -1,5 +1,6 @@
 import type { MerchItem } from "@/lib/types";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { getNextSortOrder } from "@/lib/db/reorder";
 
 type MerchRow = {
   id: string;
@@ -8,6 +9,7 @@ type MerchRow = {
   price: string | null;
   image: string | null;
   available: boolean;
+  sort_order: number;
 };
 
 function mapMerch(row: MerchRow): MerchItem {
@@ -18,6 +20,7 @@ function mapMerch(row: MerchRow): MerchItem {
     price: row.price || "",
     image: row.image || "",
     available: row.available,
+    sortOrder: row.sort_order,
   };
 }
 
@@ -26,6 +29,7 @@ export async function getMerch(availableOnly = false): Promise<MerchItem[]> {
   let query = supabase
     .from("merch")
     .select("*")
+    .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
 
   if (availableOnly) {
@@ -43,6 +47,8 @@ export async function createMerch(input: {
   price?: string;
 }): Promise<MerchItem> {
   const supabase = getSupabaseAdmin();
+  const sortOrder = await getNextSortOrder("merch");
+
   const { data, error } = await supabase
     .from("merch")
     .insert({
@@ -51,6 +57,7 @@ export async function createMerch(input: {
       price: input.price || "",
       image: "",
       available: true,
+      sort_order: sortOrder,
     })
     .select("*")
     .single();

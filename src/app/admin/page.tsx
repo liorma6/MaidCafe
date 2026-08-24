@@ -1,4 +1,5 @@
 import { getSessionEmail } from "@/lib/auth";
+import { getAboutPage } from "@/lib/db/about";
 import { getAnnouncements } from "@/lib/db/announcements";
 import { getEvents } from "@/lib/db/events";
 import { getMerch } from "@/lib/db/merch";
@@ -20,13 +21,15 @@ export default async function AdminPage() {
     );
   }
 
-  const [announcements, events, merch, team, partnerships] = await Promise.all([
-    getAnnouncements(),
-    getEvents(),
-    getMerch(),
-    getTeamMembers(),
-    getPartnerships(),
-  ]);
+  const [announcements, events, merch, team, partnerships, about] =
+    await Promise.all([
+      getAnnouncements(),
+      getEvents(),
+      getMerch(),
+      getTeamMembers(),
+      getPartnerships(),
+      getAboutPage(),
+    ]);
 
   return (
     <AdminPanel
@@ -37,6 +40,7 @@ export default async function AdminPage() {
         merch,
         team,
         partnerships,
+        about,
       }}
     />
   );

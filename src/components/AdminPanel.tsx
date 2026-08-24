@@ -4,12 +4,16 @@ import { useState } from "react";
 import FileUploadButton from "@/components/FileUploadButton";
 import HeartImageCropModal from "@/components/HeartImageCropModal";
 import LinkifiedText from "@/components/LinkifiedText";
+import ReorderControls from "@/components/ReorderControls";
 import {
   uploadEventFile,
   uploadEventFilesSequential,
   type EventUploadType,
 } from "@/lib/event-upload-client";
+import type { ReorderEntity } from "@/lib/db/reorder";
+import { sortAnnouncements } from "@/lib/sort-utils";
 import type {
+  AboutPage,
   Announcement,
   EventAlbum,
   MerchItem,
@@ -18,17 +22,35 @@ import type {
 } from "@/lib/types";
 import { formatEventDateRange } from "@/lib/date-utils";
 
-type Tab = "announcements" | "events" | "merch" | "team" | "partnerships";
+type Tab = "announcements" | "events" | "merch" | "team" | "partnerships" | "about";
+
+interface AdminData {
+  announcements: Announcement[];
+  events: EventAlbum[];
+  merch: MerchItem[];
+  team: TeamMember[];
+  partnerships: Partnership[];
+  about: AboutPage;
+}
 
 interface AdminPanelProps {
-  initialData: {
-    announcements: Announcement[];
-    events: EventAlbum[];
-    merch: MerchItem[];
-    team: TeamMember[];
-    partnerships: Partnership[];
-  };
+  initialData: AdminData;
   adminEmail: string;
+}
+
+async function reorderEntity(
+  entity: ReorderEntity,
+  id: string,
+  direction: "up" | "down",
+): Promise<unknown[] | null> {
+  const res = await fetch("/api/reorder", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ entity, id, direction }),
+  });
+  if (!res.ok) return null;
+  const { items } = await res.json();
+  return items;
 }
 
 export default function AdminPanel({ initialData, adminEmail }: AdminPanelProps) {
@@ -53,6 +75,7 @@ export default function AdminPanel({ initialData, adminEmail }: AdminPanelProps)
     { id: "merch", label: "מרצ׳", emoji: "🛍️" },
     { id: "team", label: "צוות", emoji: "♡" },
     { id: "partnerships", label: "שת״פים", emoji: "🤝" },
+    { id: "about", label: "מי אנחנו", emoji: "✨" },
   ];
 
   return (
@@ -135,6 +158,15 @@ export default function AdminPanel({ initialData, adminEmail }: AdminPanelProps)
           setLoading={setLoading}
         />
       )}
+      {tab === "about" && (
+        <AboutTab
+          about={data.about}
+          setData={setData}
+          showMessage={showMessage}
+          loading={loading}
+          setLoading={setLoading}
+        />
+      )}
     </div>
   );
 }
@@ -147,13 +179,18 @@ function AnnouncementsTab({
   setLoading,
 }: {
   announcements: Announcement[];
-  setData: React.Dispatch<React.SetStateAction<AdminPanelProps["initialData"]>>;
+  setData: React.Dispatch<React.SetStateAction<AdminData>>;
   showMessage: (t: string) => void;
   loading: boolean;
   setLoading: (v: boolean) => void;
 }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [category, setCategory] = useState("");
+  const [pinned, setPinned] = useState(false);
+  const [editing, setEditing] = useState<Announcement | null>(null);
+
+  const sorted = sortAnnouncements(announcements);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,19 +198,77 @@ function AnnouncementsTab({
     const res = await fetch("/api/announcements", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, content }),
+      body: JSON.stringify({ title, content, category, pinned }),
     });
     if (res.ok) {
       const item = await res.json();
       setData((d) => ({
         ...d,
-        announcements: [item, ...d.announcements],
+        announcements: sortAnnouncements([...d.announcements, item]),
       }));
       setTitle("");
       setContent("");
+      setCategory("");
+      setPinned(false);
       showMessage("הודעה פורסמה בהצלחה! ♡");
     }
     setLoading(false);
+  };
+
+  const handleSave = async () => {
+    if (!editing) return;
+    setLoading(true);
+    const res = await fetch("/api/announcements", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: editing.id,
+        title: editing.title,
+        content: editing.content,
+        category: editing.category,
+        pinned: editing.pinned,
+      }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      setData((d) => ({
+        ...d,
+        announcements: sortAnnouncements(
+          d.announcements.map((a) => (a.id === updated.id ? updated : a)),
+        ),
+      }));
+      setEditing(null);
+      showMessage("הודעה עודכנה! ♡");
+    }
+    setLoading(false);
+  };
+
+  const handleTogglePin = async (item: Announcement) => {
+    const res = await fetch("/api/announcements", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: item.id, pinned: !item.pinned }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      setData((d) => ({
+        ...d,
+        announcements: sortAnnouncements(
+          d.announcements.map((a) => (a.id === updated.id ? updated : a)),
+        ),
+      }));
+      showMessage(updated.pinned ? "הודעה ננעצה 📌" : "הודעה הוסרה מהנעיצה");
+    }
+  };
+
+  const handleReorder = async (id: string, direction: "up" | "down") => {
+    const items = await reorderEntity("announcements", id, direction);
+    if (items) {
+      setData((d) => ({
+        ...d,
+        announcements: items as Announcement[],
+      }));
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -190,6 +285,16 @@ function AnnouncementsTab({
     showMessage("הודעה נמחקה");
   };
 
+  const canMoveUp = (index: number, item: Announcement) => {
+    if (index === 0) return false;
+    return sorted[index - 1].pinned === item.pinned;
+  };
+
+  const canMoveDown = (index: number, item: Announcement) => {
+    if (index >= sorted.length - 1) return false;
+    return sorted[index + 1].pinned === item.pinned;
+  };
+
   return (
     <div className="space-y-6">
       <form onSubmit={handleCreate} className="kawaii-card space-y-4 p-6">
@@ -201,6 +306,12 @@ function AnnouncementsTab({
           className="admin-input"
           required
         />
+        <input
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          placeholder="נושא (למשל: אירועים, עדכונים)"
+          className="admin-input"
+        />
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
@@ -209,27 +320,132 @@ function AnnouncementsTab({
           className="admin-input"
           required
         />
+        <label className="flex items-center gap-2 text-sm font-semibold text-pink-700">
+          <input
+            type="checkbox"
+            checked={pinned}
+            onChange={(e) => setPinned(e.target.checked)}
+            className="rounded border-pink-300"
+          />
+          נעוץ בראש העמוד 📌
+        </label>
         <button type="submit" disabled={loading} className="admin-btn">
           {loading ? "מפרסם..." : "פרסם הודעה ♡"}
         </button>
       </form>
 
       <div className="space-y-3">
-        {announcements.map((a) => (
-          <div key={a.id} className="kawaii-card flex items-start justify-between p-4">
-            <div>
-              <h3 className="font-bold text-pink-700">{a.title}</h3>
-              <LinkifiedText
-                text={a.content}
-                className="mt-1 text-sm text-pink-800/70 whitespace-pre-wrap"
-              />
+        {sorted.map((a, index) => (
+          <div key={a.id} className="kawaii-card flex items-start gap-3 p-4">
+            <ReorderControls
+              onUp={() => handleReorder(a.id, "up")}
+              onDown={() => handleReorder(a.id, "down")}
+              disableUp={!canMoveUp(index, a)}
+              disableDown={!canMoveDown(index, a)}
+            />
+            <div className="min-w-0 flex-1">
+              {editing?.id === a.id ? (
+                <div className="space-y-3">
+                  <input
+                    value={editing.title}
+                    onChange={(e) =>
+                      setEditing({ ...editing, title: e.target.value })
+                    }
+                    className="admin-input"
+                    placeholder="כותרת"
+                  />
+                  <input
+                    value={editing.category}
+                    onChange={(e) =>
+                      setEditing({ ...editing, category: e.target.value })
+                    }
+                    className="admin-input"
+                    placeholder="נושא"
+                  />
+                  <textarea
+                    value={editing.content}
+                    onChange={(e) =>
+                      setEditing({ ...editing, content: e.target.value })
+                    }
+                    rows={4}
+                    className="admin-input"
+                    placeholder="תוכן"
+                  />
+                  <label className="flex items-center gap-2 text-sm font-semibold text-pink-700">
+                    <input
+                      type="checkbox"
+                      checked={editing.pinned}
+                      onChange={(e) =>
+                        setEditing({ ...editing, pinned: e.target.checked })
+                      }
+                      className="rounded border-pink-300"
+                    />
+                    נעוץ 📌
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      disabled={loading}
+                      className="admin-btn text-sm"
+                    >
+                      {loading ? "שומר..." : "שמור"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditing(null)}
+                      className="rounded-full bg-pink-100 px-4 py-2 text-sm text-pink-700"
+                    >
+                      ביטול
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
+                    {a.pinned && (
+                      <span className="rounded-full bg-pink-500 px-2 py-0.5 text-xs font-bold text-white">
+                        נעוץ 📌
+                      </span>
+                    )}
+                    {a.category && (
+                      <span className="rounded-full bg-pink-100 px-2 py-0.5 text-xs font-semibold text-pink-700">
+                        {a.category}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="font-bold text-pink-700">{a.title}</h3>
+                  <LinkifiedText
+                    text={a.content}
+                    className="mt-1 text-sm text-pink-800/70 whitespace-pre-wrap"
+                  />
+                </>
+              )}
             </div>
-            <button
-              onClick={() => handleDelete(a.id)}
-              className="shrink-0 text-sm text-red-400 hover:text-red-600"
-            >
-              מחק
-            </button>
+            {editing?.id !== a.id && (
+              <div className="flex shrink-0 flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditing(a)}
+                  className="text-sm text-pink-600 hover:text-pink-800"
+                >
+                  ערוך
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleTogglePin(a)}
+                  className="text-sm text-pink-500 hover:text-pink-700"
+                >
+                  {a.pinned ? "בטל נעיצה" : "נעץ"}
+                </button>
+                <button
+                  onClick={() => handleDelete(a.id)}
+                  className="text-sm text-red-400 hover:text-red-600"
+                >
+                  מחק
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -245,7 +461,7 @@ function EventsTab({
   setLoading,
 }: {
   events: EventAlbum[];
-  setData: React.Dispatch<React.SetStateAction<AdminPanelProps["initialData"]>>;
+  setData: React.Dispatch<React.SetStateAction<AdminData>>;
   showMessage: (t: string) => void;
   loading: boolean;
   setLoading: (v: boolean) => void;
@@ -826,7 +1042,7 @@ function MerchTab({
   setLoading,
 }: {
   merch: MerchItem[];
-  setData: React.Dispatch<React.SetStateAction<AdminPanelProps["initialData"]>>;
+  setData: React.Dispatch<React.SetStateAction<AdminData>>;
   showMessage: (t: string) => void;
   loading: boolean;
   setLoading: (v: boolean) => void;
@@ -834,6 +1050,13 @@ function MerchTab({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+
+  const handleReorder = async (id: string, direction: "up" | "down") => {
+    const items = await reorderEntity("merch", id, direction);
+    if (items) {
+      setData((d) => ({ ...d, merch: items as MerchItem[] }));
+    }
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -915,8 +1138,14 @@ function MerchTab({
         </button>
       </form>
 
-      {merch.map((item) => (
+      {merch.map((item, index) => (
         <div key={item.id} className="kawaii-card flex gap-4 p-4">
+          <ReorderControls
+            onUp={() => handleReorder(item.id, "up")}
+            onDown={() => handleReorder(item.id, "down")}
+            disableUp={index === 0}
+            disableDown={index === merch.length - 1}
+          />
           {item.image ? (
             <img
               src={item.image}
@@ -961,7 +1190,7 @@ function TeamTab({
   showMessage,
 }: {
   team: TeamMember[];
-  setData: React.Dispatch<React.SetStateAction<AdminPanelProps["initialData"]>>;
+  setData: React.Dispatch<React.SetStateAction<AdminData>>;
   showMessage: (t: string) => void;
 }) {
   const [editing, setEditing] = useState<TeamMember | null>(null);
@@ -972,6 +1201,13 @@ function TeamTab({
   const [newImage, setNewImage] = useState<File | null>(null);
   const [newChibiImage, setNewChibiImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const handleReorder = async (id: string, direction: "up" | "down") => {
+    const items = await reorderEntity("team_members", id, direction);
+    if (items) {
+      setData((d) => ({ ...d, team: items as TeamMember[] }));
+    }
+  };
 
   const handleImageUpload = async (
     memberId: string,
@@ -1122,8 +1358,15 @@ function TeamTab({
         </form>
       )}
 
-      {team.map((member) => (
-        <div key={member.id} className="kawaii-card p-4">
+      {team.map((member, index) => (
+        <div key={member.id} className="kawaii-card flex gap-3 p-4">
+          <ReorderControls
+            onUp={() => handleReorder(member.id, "up")}
+            onDown={() => handleReorder(member.id, "down")}
+            disableUp={index === 0}
+            disableDown={index === team.length - 1}
+          />
+          <div className="min-w-0 flex-1">
           {editing?.id === member.id ? (
             <div className="space-y-3">
               <input
@@ -1227,9 +1470,72 @@ function TeamTab({
               </div>
             </div>
           )}
+          </div>
         </div>
       ))}
     </div>
+  );
+}
+
+function AboutTab({
+  about,
+  setData,
+  showMessage,
+  loading,
+  setLoading,
+}: {
+  about: AboutPage;
+  setData: React.Dispatch<React.SetStateAction<AdminData>>;
+  showMessage: (t: string) => void;
+  loading: boolean;
+  setLoading: (v: boolean) => void;
+}) {
+  const [title, setTitle] = useState(about.title);
+  const [content, setContent] = useState(about.content);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const res = await fetch("/api/about", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, content }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      setData((d) => ({ ...d, about: updated }));
+      showMessage("עמוד מי אנחנו עודכן! ✨");
+    } else {
+      const data = await res.json();
+      showMessage(data.error || "שגיאה בשמירה");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <form onSubmit={handleSave} className="kawaii-card space-y-4 p-6">
+      <h2 className="text-lg font-bold text-pink-700">עריכת עמוד &quot;מי אנחנו&quot;</h2>
+      <p className="text-sm text-pink-500">
+        התוכן יוצג למשקיעים, שותפים וכל מי שמתעניין בקיומנו.
+      </p>
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="כותרת העמוד"
+        className="admin-input"
+        required
+      />
+      <textarea
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        placeholder="תוכן העמוד... (קישורים עם https:// יהיו לחיצים)"
+        rows={12}
+        className="admin-input"
+      />
+      <button type="submit" disabled={loading} className="admin-btn">
+        {loading ? "שומר..." : "שמור שינויים ✨"}
+      </button>
+    </form>
   );
 }
 
@@ -1278,7 +1584,7 @@ function PartnershipsTab({
   setLoading,
 }: {
   partnerships: Partnership[];
-  setData: React.Dispatch<React.SetStateAction<AdminPanelProps["initialData"]>>;
+  setData: React.Dispatch<React.SetStateAction<AdminData>>;
   showMessage: (t: string) => void;
   loading: boolean;
   setLoading: (v: boolean) => void;
@@ -1288,6 +1594,13 @@ function PartnershipsTab({
   const [url, setUrl] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [editing, setEditing] = useState<Partnership | null>(null);
+
+  const handleReorder = async (id: string, direction: "up" | "down") => {
+    const items = await reorderEntity("partnerships", id, direction);
+    if (items) {
+      setData((d) => ({ ...d, partnerships: items as Partnership[] }));
+    }
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1428,8 +1741,14 @@ function PartnershipsTab({
         </button>
       </form>
 
-      {partnerships.map((partner) => (
+      {partnerships.map((partner, index) => (
         <div key={partner.id} className="kawaii-card flex gap-4 p-4">
+          <ReorderControls
+            onUp={() => handleReorder(partner.id, "up")}
+            onDown={() => handleReorder(partner.id, "down")}
+            disableUp={index === 0}
+            disableDown={index === partnerships.length - 1}
+          />
           {partner.image ? (
             <img
               src={partner.image}

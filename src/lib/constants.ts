@@ -3,6 +3,7 @@ export const SITE_TAGLINE = "מייד קפה ישראלי בקונספט יפנ�
 
 export const NAV_ITEMS = [
   { href: "/", label: "עמוד הבית" },
+  { href: "/about", label: "מי אנחנו" },
   { href: "/events", label: "אירועים שהיו" },
   { href: "/team", label: "מידע על הצוות" },
   { href: "/partnerships", label: "שת״פים" },

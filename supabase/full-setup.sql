@@ -12,8 +12,16 @@ create table if not exists announcements (
   title text not null,
   content text not null,
   created_at timestamptz not null default now(),
-  active boolean not null default true
+  active boolean not null default true,
+  pinned boolean not null default false,
+  category text not null default '',
+  sort_order int not null default 0
 );
+
+alter table announcements
+  add column if not exists pinned boolean not null default false,
+  add column if not exists category text not null default '',
+  add column if not exists sort_order int not null default 0;
 
 create table if not exists events (
   id uuid primary key default gen_random_uuid(),
@@ -54,8 +62,12 @@ create table if not exists merch (
   price text not null default '',
   image text not null default '',
   available boolean not null default true,
+  sort_order int not null default 0,
   created_at timestamptz not null default now()
 );
+
+alter table merch
+  add column if not exists sort_order int not null default 0;
 
 create table if not exists team_members (
   id uuid primary key default gen_random_uuid(),
@@ -79,6 +91,21 @@ create table if not exists partnerships (
   sort_order int not null default 0,
   created_at timestamptz not null default now()
 );
+
+create table if not exists about_page (
+  id text primary key default 'main',
+  title text not null default 'מי אנחנו',
+  content text not null default '',
+  updated_at timestamptz not null default now()
+);
+
+insert into about_page (id, title, content)
+values (
+  'main',
+  'מי אנחנו',
+  'Unique Maid Cafe הוא מייד קפה ישראלי בקונספט יפני. אנחנו מגיעים לאירועים, פסטיבלים וכנסים ומביאים חוויה kawaii מתוקה לקהל.'
+)
+on conflict (id) do nothing;
 
 -- ── 3. Indexes ──────────────────────────────────────────────
 create index if not exists idx_event_images_event_id on event_images(event_id);
@@ -118,6 +145,7 @@ alter table event_videos enable row level security;
 alter table merch enable row level security;
 alter table team_members enable row level security;
 alter table partnerships enable row level security;
+alter table about_page enable row level security;
 
 drop policy if exists "announcements_public_read" on announcements;
 create policy "announcements_public_read"
@@ -158,6 +186,12 @@ create policy "team_members_public_read"
 drop policy if exists "partnerships_public_read" on partnerships;
 create policy "partnerships_public_read"
   on partnerships for select
+  to anon, authenticated
+  using (true);
+
+drop policy if exists "about_page_public_read" on about_page;
+create policy "about_page_public_read"
+  on about_page for select
   to anon, authenticated
   using (true);
 
