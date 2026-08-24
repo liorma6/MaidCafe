@@ -7,8 +7,8 @@
   --pink-dark: #d63384;
   --background: #fff5f8;
   --foreground: #4a2040;
-  --cursor-default: url("/images/cursors/cursor-default.png") 2 0, auto;
-  --cursor-pointer: url("/images/cursors/cursor-pointer.png") 11 0, pointer;
+  --cursor-default: url("/images/cursors/cursor-default.png") 1 0, auto;
+  --cursor-pointer: url("/images/cursors/cursor-pointer.png") 7 0, pointer;
 }
 
 @theme inline {
