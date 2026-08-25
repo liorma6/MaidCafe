@@ -184,23 +184,6 @@ export default function AdminPanel({
 }
 
 function AnalyticsTab() {
-  const dashboardUrl = process.env.NEXT_PUBLIC_ANALYTICS_DASHBOARD_URL;
-
-  if (!dashboardUrl) {
-    return (
-      <div className="kawaii-card p-8 text-center">
-        <p className="text-lg font-bold text-pink-700">סטטיסטיקות Umami</p>
-        <p className="mt-3 text-sm text-pink-500">
-          הגדר את משתנה הסביבה{" "}
-          <code className="rounded bg-pink-100 px-2 py-0.5 text-xs" dir="ltr">
-            NEXT_PUBLIC_ANALYTICS_DASHBOARD_URL
-          </code>{" "}
-          כדי לפתוח את לוח הבקרה.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="kawaii-card p-8 text-center">
       <p className="text-4xl">📊</p>
@@ -209,7 +192,7 @@ function AnalyticsTab() {
         לוח הבקרה נפתח בחלון חדש — Umami Cloud לא מאפשר הטמעה ישירה באתר.
       </p>
       <a
-        href={dashboardUrl}
+        href="https://cloud.umami.is/share/ogWNVS3cACEE4Am5"
         target="_blank"
         rel="noopener noreferrer"
         className="admin-btn mt-6 inline-flex items-center gap-2 text-base"
