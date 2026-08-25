@@ -1,6 +1,6 @@
-import Image from "next/image";
-import Link from "next/link";
 import AnnouncementCard from "@/components/AnnouncementCard";
+import HomeLogo from "@/components/HomeLogo";
+import Link from "next/link";
 import { getAnnouncements } from "@/lib/db/announcements";
 import { sortAnnouncements } from "@/lib/sort-utils";
 import { SITE_TAGLINE } from "@/lib/constants";
@@ -16,16 +16,7 @@ export default async function HomePage() {
   return (
     <div className="space-y-10">
       <section className="text-center">
-        <Link href="/" className="hero-sparkle mx-auto mb-6 block w-fit transition hover:scale-105">
-          <Image
-            src="/images/logo.png"
-            alt="Unique Maid Cafe"
-            width={220}
-            height={220}
-            className="mx-auto drop-shadow-xl"
-            priority
-          />
-        </Link>
+        <HomeLogo />
         <h1 className="text-3xl font-bold text-pink-600 md:text-4xl">
           ברוכים הבאים ל-Unique Maid Cafe!
         </h1>

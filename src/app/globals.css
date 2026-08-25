@@ -236,6 +236,49 @@ textarea.admin-input {
   animation: sparkle 2s ease-in-out infinite;
 }
 
+.home-logo-trigger {
+  touch-action: manipulation;
+}
+
+.home-logo-glow {
+  filter: drop-shadow(0 0 18px rgba(255, 105, 180, 0.85));
+}
+
+.logo-sparkle-particle {
+  z-index: 20;
+  color: #ff69b4;
+  text-shadow:
+    0 0 8px rgba(255, 182, 212, 0.95),
+    0 0 14px rgba(255, 105, 180, 0.75);
+  animation: logo-sparkle-burst 0.9s ease-out forwards;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes logo-sparkle-burst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.25) rotate(0deg);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--sparkle-x)), calc(-50% + var(--sparkle-y)))
+      scale(1.15) rotate(160deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-sparkle-particle {
+    animation-duration: 0.45s;
+  }
+
+  .home-logo-glow {
+    filter: none;
+  }
+}
+
 @keyframes sparkle {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.6; transform: scale(1.1); }
