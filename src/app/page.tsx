@@ -2,14 +2,15 @@ import AnnouncementCard from "@/components/AnnouncementCard";
 import HomeLogo from "@/components/HomeLogo";
 import Link from "next/link";
 import { getAnnouncements } from "@/lib/db/announcements";
-import { incrementSiteViews } from "@/lib/db/site-stats";
+import { hashVisitorIp, incrementUniqueVisitor } from "@/lib/db/site-stats";
 import { sortAnnouncements } from "@/lib/sort-utils";
 import { SITE_TAGLINE } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  await incrementSiteViews().catch(() => {});
+  const ipHash = await hashVisitorIp();
+  await incrementUniqueVisitor(ipHash).catch(() => {});
 
   const announcements = sortAnnouncements(await getAnnouncements(true));
   const categories = [

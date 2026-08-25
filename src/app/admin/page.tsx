@@ -4,7 +4,7 @@ import { getAnnouncements } from "@/lib/db/announcements";
 import { getEvents } from "@/lib/db/events";
 import { getMerch } from "@/lib/db/merch";
 import { getPartnerships } from "@/lib/db/partnerships";
-import { getSiteViews } from "@/lib/db/site-stats";
+import { getSiteStats, type SiteStats } from "@/lib/db/site-stats";
 import { getTeamMembers } from "@/lib/db/team";
 import AdminLoginForm from "@/components/AdminLoginForm";
 import AdminPanel from "@/components/AdminPanel";
@@ -22,7 +22,7 @@ export default async function AdminPage() {
     );
   }
 
-  const [announcements, events, merch, team, partnerships, about, siteViews] =
+  const [announcements, events, merch, team, partnerships, about, siteStats] =
     await Promise.all([
       getAnnouncements(),
       getEvents(),
@@ -30,13 +30,13 @@ export default async function AdminPage() {
       getTeamMembers(),
       getPartnerships(),
       getAboutPage(),
-      getSiteViews().catch(() => 0),
+      getSiteStats().catch(() => ({ totalViews: 0, dailyViews: 0 })),
     ]);
 
   return (
     <AdminPanel
       adminEmail={email}
-      siteViews={siteViews}
+      siteStats={siteStats}
       initialData={{
         announcements,
         events,

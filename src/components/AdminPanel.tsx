@@ -20,6 +20,7 @@ import type {
   Partnership,
   TeamMember,
 } from "@/lib/types";
+import type { SiteStats } from "@/lib/db/site-stats";
 import { formatEventDateRange } from "@/lib/date-utils";
 
 type Tab =
@@ -43,7 +44,7 @@ interface AdminData {
 interface AdminPanelProps {
   initialData: AdminData;
   adminEmail: string;
-  siteViews: number;
+  siteStats: SiteStats;
 }
 
 async function reorderEntity(
@@ -64,7 +65,7 @@ async function reorderEntity(
 export default function AdminPanel({
   initialData,
   adminEmail,
-  siteViews,
+  siteStats,
 }: AdminPanelProps) {
   const [tab, setTab] = useState<Tab>("announcements");
   const [data, setData] = useState(initialData);
@@ -180,23 +181,36 @@ export default function AdminPanel({
           setLoading={setLoading}
         />
       )}
-      {tab === "stats" && <AnalyticsTab siteViews={siteViews} />}
+      {tab === "stats" && <AnalyticsTab siteStats={siteStats} />}
     </div>
   );
 }
 
-function AnalyticsTab({ siteViews }: { siteViews: number }) {
+function AnalyticsTab({ siteStats }: { siteStats: SiteStats }) {
   return (
-    <div className="kawaii-card flex min-h-[280px] flex-col items-center justify-center p-10 text-center">
-      <p className="text-5xl">👁️</p>
-      <p className="mt-6 text-lg font-semibold text-pink-600">
-        סך כל המבקרים באתר:
-      </p>
-      <p className="mt-2 text-5xl font-bold tabular-nums text-pink-700">
-        {siteViews.toLocaleString("he-IL")}
-      </p>
-      <p className="mt-4 text-sm text-pink-400">
-        נספר בכל טעינה של עמוד הבית
+    <div className="kawaii-card space-y-8 p-10 text-center">
+      <div className="grid gap-8 sm:grid-cols-2">
+        <div className="flex flex-col items-center justify-center">
+          <p className="text-4xl">👁️</p>
+          <p className="mt-4 text-base font-semibold text-pink-600">
+            סך כל המבקרים הייחודיים:
+          </p>
+          <p className="mt-2 text-4xl font-bold tabular-nums text-pink-700">
+            {siteStats.totalViews.toLocaleString("he-IL")}
+          </p>
+        </div>
+        <div className="flex flex-col items-center justify-center sm:border-r sm:border-pink-200">
+          <p className="text-4xl">📅</p>
+          <p className="mt-4 text-base font-semibold text-pink-600">
+            מבקרים ייחודיים היום:
+          </p>
+          <p className="mt-2 text-4xl font-bold tabular-nums text-pink-700">
+            {siteStats.dailyViews.toLocaleString("he-IL")}
+          </p>
+        </div>
+      </div>
+      <p className="text-sm text-pink-400">
+        נספר פעם אחת ליום לכל מבקר (לפי IP מקודד)
       </p>
     </div>
   );

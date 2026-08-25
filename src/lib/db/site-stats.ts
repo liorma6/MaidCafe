@@ -1,19 +1,51 @@
+import { createHash } from "crypto";
+import { headers } from "next/headers";
 import { getSupabaseAdmin } from "@/lib/supabase";
 
-export async function incrementSiteViews(): Promise<void> {
+export type SiteStats = {
+  totalViews: number;
+  dailyViews: number;
+};
+
+export async function hashVisitorIp(): Promise<string> {
+  const headerStore = await headers();
+  const forwarded = headerStore.get("x-forwarded-for");
+  const ip =
+    forwarded?.split(",")[0]?.trim() ||
+    headerStore.get("x-real-ip")?.trim() ||
+    "unknown";
+
+  return createHash("sha256").update(ip).digest("hex");
+}
+
+export async function incrementUniqueVisitor(ipHash: string): Promise<void> {
   const supabase = getSupabaseAdmin();
-  const { error } = await supabase.rpc("increment_site_views");
+  const { error } = await supabase.rpc("increment_all_views", {
+    visitor_ip_hash: ipHash,
+  });
   if (error) throw new Error(error.message);
 }
 
-export async function getSiteViews(): Promise<number> {
+function todayIsoDate(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export async function getSiteStats(): Promise<SiteStats> {
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from("site_stats")
-    .select("views")
+    .select("views, daily_views, daily_date")
     .eq("id", "main")
     .single();
 
   if (error) throw new Error(error.message);
-  return (data.views as number) ?? 0;
+
+  const today = todayIsoDate();
+  const dailyDate = data.daily_date as string | null;
+
+  return {
+    totalViews: (data.views as number) ?? 0,
+    dailyViews:
+      dailyDate === today ? ((data.daily_views as number) ?? 0) : 0,
+  };
 }

@@ -1,12 +1,17 @@
--- Internal page-view counter (singleton row)
-create table if not exists site_stats (
-  id text primary key default 'main',
-  views integer not null default 0 check (views >= 0)
+-- Unique visitors per IP per day + updated counter function
+create table if not exists unique_visitors (
+  ip_hash text not null,
+  visit_date date not null default current_date,
+  primary key (ip_hash, visit_date)
 );
 
-insert into site_stats (id, views)
-values ('main', 0)
-on conflict (id) do nothing;
+alter table unique_visitors disable row level security;
+
+alter table site_stats
+  add column if not exists daily_views integer not null default 0 check (daily_views >= 0),
+  add column if not exists daily_date date;
+
+drop function if exists increment_site_views();
 
 create or replace function increment_all_views(visitor_ip_hash text)
 returns void
@@ -35,11 +40,3 @@ begin
   end if;
 end;
 $$;
-
-alter table site_stats enable row level security;
-
-drop policy if exists "site_stats_public_read" on site_stats;
-create policy "site_stats_public_read"
-  on site_stats for select
-  to anon, authenticated
-  using (true);

@@ -109,28 +109,48 @@ on conflict (id) do nothing;
 
 create table if not exists site_stats (
   id text primary key default 'main',
-  views integer not null default 0 check (views >= 0)
+  views integer not null default 0 check (views >= 0),
+  daily_views integer not null default 0 check (daily_views >= 0),
+  daily_date date
 );
 
 insert into site_stats (id, views)
 values ('main', 0)
 on conflict (id) do nothing;
 
-create or replace function increment_site_views()
-returns integer
+create table if not exists unique_visitors (
+  ip_hash text not null,
+  visit_date date not null default current_date,
+  primary key (ip_hash, visit_date)
+);
+
+alter table unique_visitors disable row level security;
+
+create or replace function increment_all_views(visitor_ip_hash text)
+returns void
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
-  new_views integer;
+  did_insert boolean := false;
 begin
-  update site_stats
-  set views = views + 1
-  where id = 'main'
-  returning views into new_views;
+  insert into unique_visitors (ip_hash, visit_date)
+  values (visitor_ip_hash, current_date)
+  on conflict (ip_hash, visit_date) do nothing
+  returning true into did_insert;
 
-  return coalesce(new_views, 0);
+  if did_insert then
+    update site_stats
+    set
+      views = views + 1,
+      daily_views = case
+        when daily_date = current_date then daily_views + 1
+        else 1
+      end,
+      daily_date = current_date
+    where id = 'main';
+  end if;
 end;
 $$;
 
