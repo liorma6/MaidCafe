@@ -22,7 +22,14 @@ import type {
 } from "@/lib/types";
 import { formatEventDateRange } from "@/lib/date-utils";
 
-type Tab = "announcements" | "events" | "merch" | "team" | "partnerships" | "about";
+type Tab =
+  | "announcements"
+  | "events"
+  | "merch"
+  | "team"
+  | "partnerships"
+  | "about"
+  | "stats";
 
 interface AdminData {
   announcements: Announcement[];
@@ -36,6 +43,7 @@ interface AdminData {
 interface AdminPanelProps {
   initialData: AdminData;
   adminEmail: string;
+  analyticsDashboardUrl?: string;
 }
 
 async function reorderEntity(
@@ -53,7 +61,11 @@ async function reorderEntity(
   return items;
 }
 
-export default function AdminPanel({ initialData, adminEmail }: AdminPanelProps) {
+export default function AdminPanel({
+  initialData,
+  adminEmail,
+  analyticsDashboardUrl,
+}: AdminPanelProps) {
   const [tab, setTab] = useState<Tab>("announcements");
   const [data, setData] = useState(initialData);
   const [message, setMessage] = useState("");
@@ -76,10 +88,13 @@ export default function AdminPanel({ initialData, adminEmail }: AdminPanelProps)
     { id: "team", label: "צוות", emoji: "♡" },
     { id: "partnerships", label: "שת״פים", emoji: "🤝" },
     { id: "about", label: "מי אנחנו", emoji: "✨" },
+    { id: "stats", label: "סטטיסטיקות", emoji: "📊" },
   ];
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <div
+      className={`mx-auto px-4 py-8 ${tab === "stats" ? "max-w-7xl" : "max-w-5xl"}`}
+    >
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-pink-700">פאנל ניהול ♡</h1>
@@ -167,6 +182,41 @@ export default function AdminPanel({ initialData, adminEmail }: AdminPanelProps)
           setLoading={setLoading}
         />
       )}
+      {tab === "stats" && (
+        <AnalyticsTab dashboardUrl={analyticsDashboardUrl} />
+      )}
+    </div>
+  );
+}
+
+function AnalyticsTab({ dashboardUrl }: { dashboardUrl?: string }) {
+  if (!dashboardUrl) {
+    return (
+      <div className="kawaii-card p-8 text-center">
+        <p className="text-lg font-bold text-pink-700">סטטיסטיקות Umami</p>
+        <p className="mt-3 text-sm text-pink-500">
+          הגדר את משתנה הסביבה{" "}
+          <code className="rounded bg-pink-100 px-2 py-0.5 text-xs" dir="ltr">
+            NEXT_PUBLIC_ANALYTICS_DASHBOARD_URL
+          </code>{" "}
+          כדי להציג את לוח הבקרה כאן.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="kawaii-card overflow-hidden p-4 sm:p-6">
+        <h2 className="mb-4 text-lg font-bold text-pink-700">סטטיסטיקות Umami 📊</h2>
+        <iframe
+          src={dashboardUrl}
+          title="Umami Analytics"
+          className="min-h-[calc(100vh-14rem)] w-full rounded-xl border-2 border-pink-200 bg-white"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+      </div>
     </div>
   );
 }

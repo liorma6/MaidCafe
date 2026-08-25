@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Rubik } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -28,6 +29,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Footer />
           <SiteExtras />
         </div>
+        {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID ? (
+          <Script
+            defer
+            data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
+            src="https://cloud.umami.is/script.js"
+            strategy="afterInteractive"
+          />
+        ) : null}
       </body>
     </html>
   );
