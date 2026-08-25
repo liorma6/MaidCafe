@@ -43,7 +43,6 @@ interface AdminData {
 interface AdminPanelProps {
   initialData: AdminData;
   adminEmail: string;
-  analyticsDashboardUrl?: string;
 }
 
 async function reorderEntity(
@@ -64,7 +63,6 @@ async function reorderEntity(
 export default function AdminPanel({
   initialData,
   adminEmail,
-  analyticsDashboardUrl,
 }: AdminPanelProps) {
   const [tab, setTab] = useState<Tab>("announcements");
   const [data, setData] = useState(initialData);
@@ -92,9 +90,7 @@ export default function AdminPanel({
   ];
 
   return (
-    <div
-      className={`mx-auto px-4 py-8 ${tab === "stats" ? "max-w-7xl" : "max-w-5xl"}`}
-    >
+    <div className="mx-auto max-w-5xl px-4 py-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-pink-700">פאנל ניהול ♡</h1>
@@ -182,14 +178,14 @@ export default function AdminPanel({
           setLoading={setLoading}
         />
       )}
-      {tab === "stats" && (
-        <AnalyticsTab dashboardUrl={analyticsDashboardUrl} />
-      )}
+      {tab === "stats" && <AnalyticsTab />}
     </div>
   );
 }
 
-function AnalyticsTab({ dashboardUrl }: { dashboardUrl?: string }) {
+function AnalyticsTab() {
+  const dashboardUrl = process.env.NEXT_PUBLIC_ANALYTICS_DASHBOARD_URL;
+
   if (!dashboardUrl) {
     return (
       <div className="kawaii-card p-8 text-center">
@@ -199,24 +195,27 @@ function AnalyticsTab({ dashboardUrl }: { dashboardUrl?: string }) {
           <code className="rounded bg-pink-100 px-2 py-0.5 text-xs" dir="ltr">
             NEXT_PUBLIC_ANALYTICS_DASHBOARD_URL
           </code>{" "}
-          כדי להציג את לוח הבקרה כאן.
+          כדי לפתוח את לוח הבקרה.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="kawaii-card overflow-hidden p-4 sm:p-6">
-        <h2 className="mb-4 text-lg font-bold text-pink-700">סטטיסטיקות Umami 📊</h2>
-        <iframe
-          src={dashboardUrl}
-          title="Umami Analytics"
-          className="min-h-[calc(100vh-14rem)] w-full rounded-xl border-2 border-pink-200 bg-white"
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-        />
-      </div>
+    <div className="kawaii-card p-8 text-center">
+      <p className="text-4xl">📊</p>
+      <h2 className="mt-4 text-xl font-bold text-pink-700">סטטיסטיקות Umami</h2>
+      <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-pink-500">
+        לוח הבקרה נפתח בחלון חדש — Umami Cloud לא מאפשר הטמעה ישירה באתר.
+      </p>
+      <a
+        href={dashboardUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="admin-btn mt-6 inline-flex items-center gap-2 text-base"
+      >
+        📊 פתח סטטיסטיקות מלאות
+      </a>
     </div>
   );
 }

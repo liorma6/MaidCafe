@@ -34,7 +34,6 @@ export default async function AdminPage() {
   return (
     <AdminPanel
       adminEmail={email}
-      analyticsDashboardUrl={process.env.NEXT_PUBLIC_ANALYTICS_DASHBOARD_URL}
       initialData={{
         announcements,
         events,
