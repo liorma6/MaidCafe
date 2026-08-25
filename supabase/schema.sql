@@ -85,6 +85,33 @@ values (
 )
 on conflict (id) do nothing;
 
+create table if not exists site_stats (
+  id text primary key default 'main',
+  views integer not null default 0 check (views >= 0)
+);
+
+insert into site_stats (id, views)
+values ('main', 0)
+on conflict (id) do nothing;
+
+create or replace function increment_site_views()
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  new_views integer;
+begin
+  update site_stats
+  set views = views + 1
+  where id = 'main'
+  returning views into new_views;
+
+  return coalesce(new_views, 0);
+end;
+$$;
+
 create index if not exists idx_event_images_event_id on event_images(event_id);
 create index if not exists idx_announcements_active on announcements(active);
 

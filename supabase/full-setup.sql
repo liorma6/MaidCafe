@@ -107,6 +107,33 @@ values (
 )
 on conflict (id) do nothing;
 
+create table if not exists site_stats (
+  id text primary key default 'main',
+  views integer not null default 0 check (views >= 0)
+);
+
+insert into site_stats (id, views)
+values ('main', 0)
+on conflict (id) do nothing;
+
+create or replace function increment_site_views()
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  new_views integer;
+begin
+  update site_stats
+  set views = views + 1
+  where id = 'main'
+  returning views into new_views;
+
+  return coalesce(new_views, 0);
+end;
+$$;
+
 -- ── 3. Indexes ──────────────────────────────────────────────
 create index if not exists idx_event_images_event_id on event_images(event_id);
 create index if not exists idx_event_videos_event_id on event_videos(event_id);
@@ -146,6 +173,7 @@ alter table merch enable row level security;
 alter table team_members enable row level security;
 alter table partnerships enable row level security;
 alter table about_page enable row level security;
+alter table site_stats enable row level security;
 
 drop policy if exists "announcements_public_read" on announcements;
 create policy "announcements_public_read"
@@ -192,6 +220,12 @@ create policy "partnerships_public_read"
 drop policy if exists "about_page_public_read" on about_page;
 create policy "about_page_public_read"
   on about_page for select
+  to anon, authenticated
+  using (true);
+
+drop policy if exists "site_stats_public_read" on site_stats;
+create policy "site_stats_public_read"
+  on site_stats for select
   to anon, authenticated
   using (true);
 

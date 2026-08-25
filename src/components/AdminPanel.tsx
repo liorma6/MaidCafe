@@ -43,6 +43,7 @@ interface AdminData {
 interface AdminPanelProps {
   initialData: AdminData;
   adminEmail: string;
+  siteViews: number;
 }
 
 async function reorderEntity(
@@ -63,6 +64,7 @@ async function reorderEntity(
 export default function AdminPanel({
   initialData,
   adminEmail,
+  siteViews,
 }: AdminPanelProps) {
   const [tab, setTab] = useState<Tab>("announcements");
   const [data, setData] = useState(initialData);
@@ -178,27 +180,24 @@ export default function AdminPanel({
           setLoading={setLoading}
         />
       )}
-      {tab === "stats" && <AnalyticsTab />}
+      {tab === "stats" && <AnalyticsTab siteViews={siteViews} />}
     </div>
   );
 }
 
-function AnalyticsTab() {
+function AnalyticsTab({ siteViews }: { siteViews: number }) {
   return (
-    <div className="kawaii-card p-8 text-center">
-      <p className="text-4xl">📊</p>
-      <h2 className="mt-4 text-xl font-bold text-pink-700">סטטיסטיקות Umami</h2>
-      <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-pink-500">
-        לוח הבקרה נפתח בחלון חדש — Umami Cloud לא מאפשר הטמעה ישירה באתר.
+    <div className="kawaii-card flex min-h-[280px] flex-col items-center justify-center p-10 text-center">
+      <p className="text-5xl">👁️</p>
+      <p className="mt-6 text-lg font-semibold text-pink-600">
+        סך כל המבקרים באתר:
       </p>
-      <a
-        href="https://cloud.umami.is/share/ogWNVS3cACEE4Am5"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="admin-btn mt-6 inline-flex items-center gap-2 text-base"
-      >
-        📊 פתח סטטיסטיקות מלאות
-      </a>
+      <p className="mt-2 text-5xl font-bold tabular-nums text-pink-700">
+        {siteViews.toLocaleString("he-IL")}
+      </p>
+      <p className="mt-4 text-sm text-pink-400">
+        נספר בכל טעינה של עמוד הבית
+      </p>
     </div>
   );
 }
