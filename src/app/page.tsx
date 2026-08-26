@@ -1,16 +1,14 @@
 import AnnouncementCard from "@/components/AnnouncementCard";
 import HomeLogo from "@/components/HomeLogo";
+import HomeVisitorTracker from "@/components/HomeVisitorTracker";
 import Link from "next/link";
 import { getAnnouncements } from "@/lib/db/announcements";
-import { recordUniqueHomeVisitor } from "@/lib/db/site-stats";
 import { sortAnnouncements } from "@/lib/sort-utils";
 import { SITE_TAGLINE } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  await recordUniqueHomeVisitor().catch(() => {});
-
   const announcements = sortAnnouncements(await getAnnouncements(true));
   const categories = [
     ...new Set(announcements.map((a) => a.category.trim() || "כללי")),
@@ -18,6 +16,7 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-10">
+      <HomeVisitorTracker />
       <section className="text-center">
         <HomeLogo />
         <h1 className="text-3xl font-bold text-pink-600 md:text-4xl">
