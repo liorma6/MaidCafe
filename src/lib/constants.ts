@@ -1,5 +1,8 @@
 export const SITE_NAME = "Unique Maid Cafe";
+export const SITE_URL = "https://www.uniquemaidcafe.com";
 export const SITE_TAGLINE = "מייד קפה ישראלי בקונספט יפני ♡";
+export const SITE_DESCRIPTION =
+  "Unique Maid Cafe — מייד קפה ישראלי בקונספט יפני, אנימה ו-Maid Cafe. בית קפה pop-up לאירועים, פסטיבלים וכנסים עם חוויה kawaii מתוקה בכל הארץ!";
 
 export const NAV_ITEMS = [
   { href: "/", label: "עמוד הבית" },
