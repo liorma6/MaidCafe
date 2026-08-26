@@ -5,12 +5,14 @@ import { getAnnouncements } from "@/lib/db/announcements";
 import { getTeamMembers } from "@/lib/db/team";
 import { getPartnerships } from "@/lib/db/partnerships";
 import { getMerch } from "@/lib/db/merch";
+import { getFaqItems } from "@/lib/db/faq";
 
 const ENTITIES = new Set<ReorderEntity>([
   "announcements",
   "team_members",
   "partnerships",
   "merch",
+  "faq_items",
 ]);
 
 export async function POST(request: NextRequest) {
@@ -36,6 +38,9 @@ export async function POST(request: NextRequest) {
     }
     if (entity === "partnerships") {
       return NextResponse.json({ items: await getPartnerships() });
+    }
+    if (entity === "faq_items") {
+      return NextResponse.json({ items: await getFaqItems() });
     }
     return NextResponse.json({ items: await getMerch() });
   } catch (error) {

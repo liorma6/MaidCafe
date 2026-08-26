@@ -1,12 +1,18 @@
 import { getSupabaseAdmin } from "@/lib/supabase";
 
-export type ReorderEntity = "announcements" | "team_members" | "partnerships" | "merch";
+export type ReorderEntity =
+  | "announcements"
+  | "team_members"
+  | "partnerships"
+  | "merch"
+  | "faq_items";
 
 const TABLE_MAP: Record<ReorderEntity, string> = {
   announcements: "announcements",
   team_members: "team_members",
   partnerships: "partnerships",
   merch: "merch",
+  faq_items: "faq_items",
 };
 
 async function swapSortOrder(

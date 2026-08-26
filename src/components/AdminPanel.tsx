@@ -17,6 +17,7 @@ import type {
   AboutPage,
   Announcement,
   EventAlbum,
+  FaqItem,
   MerchItem,
   Partnership,
   TeamMember,
@@ -31,6 +32,7 @@ type Tab =
   | "team"
   | "partnerships"
   | "about"
+  | "faq"
   | "stats";
 
 interface AdminData {
@@ -40,6 +42,7 @@ interface AdminData {
   team: TeamMember[];
   partnerships: Partnership[];
   about: AboutPage;
+  faq: FaqItem[];
 }
 
 interface AdminPanelProps {
@@ -90,6 +93,7 @@ export default function AdminPanel({
     { id: "team", label: "צוות", emoji: "♡" },
     { id: "partnerships", label: "שת״פים", emoji: "🤝" },
     { id: "about", label: "מי אנחנו", emoji: "✨" },
+    { id: "faq", label: "שאלות ותשובות", emoji: "💬" },
     { id: "stats", label: "סטטיסטיקות", emoji: "📊" },
   ];
 
@@ -176,6 +180,15 @@ export default function AdminPanel({
       {tab === "about" && (
         <AboutTab
           about={data.about}
+          setData={setData}
+          showMessage={showMessage}
+          loading={loading}
+          setLoading={setLoading}
+        />
+      )}
+      {tab === "faq" && (
+        <FaqTab
+          faq={data.faq}
           setData={setData}
           showMessage={showMessage}
           loading={loading}
@@ -1599,6 +1612,221 @@ function TeamTab({
               </div>
             </div>
           )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FaqTab({
+  faq,
+  setData,
+  showMessage,
+  loading,
+  setLoading,
+}: {
+  faq: FaqItem[];
+  setData: React.Dispatch<React.SetStateAction<AdminData>>;
+  showMessage: (t: string) => void;
+  loading: boolean;
+  setLoading: (v: boolean) => void;
+}) {
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [editing, setEditing] = useState<FaqItem | null>(null);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const res = await fetch("/api/faq", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, answer }),
+    });
+    if (res.ok) {
+      const item = await res.json();
+      setData((d) => ({ ...d, faq: [...d.faq, item] }));
+      setQuestion("");
+      setAnswer("");
+      showMessage("שאלה נוספה! 💬");
+    } else {
+      const data = await res.json();
+      showMessage(data.error || "שגיאה");
+    }
+    setLoading(false);
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editing) return;
+    setLoading(true);
+    const res = await fetch("/api/faq", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: editing.id,
+        question: editing.question,
+        answer: editing.answer,
+        active: editing.active,
+      }),
+    });
+    if (res.ok) {
+      const item = await res.json();
+      setData((d) => ({
+        ...d,
+        faq: d.faq.map((f) => (f.id === item.id ? item : f)),
+      }));
+      setEditing(null);
+      showMessage("שאלה עודכנה! 💬");
+    } else {
+      const data = await res.json();
+      showMessage(data.error || "שגיאה");
+    }
+    setLoading(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("למחוק את השאלה?")) return;
+    const res = await fetch("/api/faq", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      setData((d) => ({ ...d, faq: d.faq.filter((f) => f.id !== id) }));
+      if (editing?.id === id) setEditing(null);
+      showMessage("שאלה נמחקה");
+    }
+  };
+
+  const handleToggleActive = async (item: FaqItem) => {
+    const res = await fetch("/api/faq", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: item.id, active: !item.active }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      setData((d) => ({
+        ...d,
+        faq: d.faq.map((f) => (f.id === updated.id ? updated : f)),
+      }));
+    }
+  };
+
+  const handleReorder = async (id: string, direction: "up" | "down") => {
+    const items = await reorderEntity("faq_items", id, direction);
+    if (items) {
+      setData((d) => ({ ...d, faq: items as FaqItem[] }));
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <form onSubmit={handleCreate} className="kawaii-card space-y-4 p-6">
+        <h2 className="text-lg font-bold text-pink-700">הוספת שאלה לעמוד הבית</h2>
+        <p className="text-sm text-pink-500">
+          השאלות יוצגו בעמוד הבית תחת &quot;שאלות ותשובות נפוצות&quot;.
+        </p>
+        <input
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder="שאלה"
+          className="admin-input"
+          required
+        />
+        <textarea
+          value={answer}
+          onChange={(e) => setAnswer(e.target.value)}
+          placeholder="תשובה (קישורים עם https:// יהיו לחיצים)"
+          rows={4}
+          className="admin-input"
+          required
+        />
+        <button type="submit" disabled={loading} className="admin-btn">
+          {loading ? "שומר..." : "הוסף שאלה 💬"}
+        </button>
+      </form>
+
+      {faq.map((item, index) => (
+        <div key={item.id} className="kawaii-card p-6">
+          <div className="flex flex-wrap items-start gap-4">
+            <ReorderControls
+              onUp={() => handleReorder(item.id, "up")}
+              onDown={() => handleReorder(item.id, "down")}
+              disableUp={index === 0}
+              disableDown={index === faq.length - 1}
+            />
+            <div className="min-w-0 flex-1">
+              {editing?.id === item.id ? (
+                <form onSubmit={handleUpdate} className="space-y-3">
+                  <input
+                    value={editing.question}
+                    onChange={(e) =>
+                      setEditing({ ...editing, question: e.target.value })
+                    }
+                    className="admin-input"
+                    required
+                  />
+                  <textarea
+                    value={editing.answer}
+                    onChange={(e) =>
+                      setEditing({ ...editing, answer: e.target.value })
+                    }
+                    rows={4}
+                    className="admin-input"
+                    required
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <button type="submit" disabled={loading} className="admin-btn">
+                      שמור
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditing(null)}
+                      className="rounded-full bg-pink-100 px-4 py-2 text-sm font-semibold text-pink-700"
+                    >
+                      ביטול
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <>
+                  <h3
+                    className={`font-bold ${item.active ? "text-pink-700" : "text-pink-300 line-through"}`}
+                  >
+                    {item.question}
+                  </h3>
+                  <p className="preserve-lines mt-2 text-sm text-pink-800/75 whitespace-pre-wrap">
+                    {item.answer}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditing(item)}
+                      className="rounded-full bg-pink-100 px-3 py-1 text-xs font-semibold text-pink-700 hover:bg-pink-200"
+                    >
+                      עריכה
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleActive(item)}
+                      className="rounded-full bg-pink-100 px-3 py-1 text-xs font-semibold text-pink-700 hover:bg-pink-200"
+                    >
+                      {item.active ? "הסתר" : "הצג"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(item.id)}
+                      className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-200"
+                    >
+                      מחק
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       ))}

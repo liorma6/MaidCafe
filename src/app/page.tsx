@@ -4,15 +4,20 @@ import HomeLogo from "@/components/HomeLogo";
 import HomeVisitorTracker from "@/components/HomeVisitorTracker";
 import Link from "next/link";
 import { getAnnouncements } from "@/lib/db/announcements";
+import { getFaqItems } from "@/lib/db/faq";
 import { sortAnnouncements } from "@/lib/sort-utils";
 import { SITE_TAGLINE } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const announcements = sortAnnouncements(await getAnnouncements(true));
+  const [announcements, faqItems] = await Promise.all([
+    getAnnouncements(true),
+    getFaqItems(true).catch(() => []),
+  ]);
+  const sortedAnnouncements = sortAnnouncements(announcements);
   const categories = [
-    ...new Set(announcements.map((a) => a.category.trim() || "כללי")),
+    ...new Set(sortedAnnouncements.map((a) => a.category.trim() || "כללי")),
   ];
 
   return (
@@ -54,12 +59,12 @@ export default async function HomePage() {
         <h2 className="section-title mb-6 text-center text-2xl font-bold text-pink-700">
           הודעות חשובות
         </h2>
-        {announcements.length === 0 ? (
+        {sortedAnnouncements.length === 0 ? (
           <p className="text-center text-pink-400">אין הודעות כרגע — בקרוב!</p>
         ) : (
           <div className="space-y-8">
             {categories.map((category) => {
-              const items = announcements.filter(
+              const items = sortedAnnouncements.filter(
                 (a) => (a.category.trim() || "כללי") === category,
               );
               return (
@@ -102,7 +107,7 @@ export default async function HomePage() {
         </Link>
       </section>
 
-      <HomeFaq />
+      <HomeFaq items={faqItems} />
     </div>
   );
 }

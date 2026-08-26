@@ -1,45 +1,62 @@
-const FAQ_ITEMS = [
-  {
-    question: "האם אתם ה-מאיד קפה הראשון בארץ?",
-    answer:
-      "כן! יוניק מייד קפה (Unique Maid Cafe) מביא את החוויה היפנית המקורית היישר לישראל.",
-  },
-  {
-    question: "איפה אפשר למצוא את מייד קפה ישראל?",
-    answer:
-      "אנחנו מקיימים אירועי פופ-אפ מתחלפים. עקבו אחרינו כדי לדעת מתי המייד קאפה הקרוב מגיע אליכם.",
-  },
-] as const;
+import LinkifiedText from "@/components/LinkifiedText";
+import type { FaqItem } from "@/lib/types";
 
-export default function HomeFaq() {
+interface Props {
+  items: FaqItem[];
+}
+
+export default function HomeFaq({ items }: Props) {
+  if (items.length === 0) return null;
+
   return (
     <section className="home-faq" aria-labelledby="home-faq-title">
-      <h2
-        id="home-faq-title"
-        className="section-title mb-5 text-center text-2xl font-bold text-pink-700"
-      >
-        שאלות ותשובות נפוצות
-      </h2>
+      <div className="mb-6 text-center">
+        <p className="text-2xl" aria-hidden>
+          💬
+        </p>
+        <h2
+          id="home-faq-title"
+          className="section-title mt-2 text-2xl font-bold text-pink-700"
+        >
+          שאלות ותשובות נפוצות
+        </h2>
+        <p className="mt-2 text-sm text-pink-500">
+          כל מה שרציתם לדעת על Unique Maid Cafe ♡
+        </p>
+      </div>
+
       <div className="space-y-3">
-        {FAQ_ITEMS.map((item) => (
+        {items.map((item, index) => (
           <details
-            key={item.question}
-            className="home-faq-item kawaii-card group overflow-hidden"
+            key={item.id}
+            className="home-faq-item group overflow-hidden rounded-2xl border-2 border-pink-200 bg-white/90 shadow-sm transition hover:border-pink-300 hover:shadow-md"
+            {...(index === 0 ? { open: true } : {})}
           >
-            <summary className="cursor-pointer list-none px-5 py-4 text-base font-bold text-pink-700 marker:content-none [&::-webkit-details-marker]:hidden">
+            <summary className="cursor-pointer list-none bg-gradient-to-l from-pink-50 to-white px-5 py-4 text-base font-bold text-pink-700 marker:content-none [&::-webkit-details-marker]:hidden">
               <span className="flex items-start justify-between gap-3">
-                <span>{item.question}</span>
+                <span className="flex items-start gap-2">
+                  <span
+                    className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-pink-100 text-xs font-bold text-pink-600"
+                    aria-hidden
+                  >
+                    {index + 1}
+                  </span>
+                  <span>{item.question}</span>
+                </span>
                 <span
-                  className="mt-0.5 shrink-0 text-pink-400 transition group-open:rotate-45"
+                  className="home-faq-chevron mt-1 shrink-0 text-lg text-pink-400 transition group-open:rotate-180"
                   aria-hidden
                 >
-                  +
+                  ⌄
                 </span>
               </span>
             </summary>
-            <p className="border-t border-pink-100 px-5 pb-4 pt-3 leading-relaxed text-pink-800/80">
-              {item.answer}
-            </p>
+            <div className="border-t border-pink-100 px-5 py-4">
+              <LinkifiedText
+                text={item.answer}
+                className="preserve-lines leading-relaxed whitespace-pre-wrap text-pink-800/85"
+              />
+            </div>
           </details>
         ))}
       </div>

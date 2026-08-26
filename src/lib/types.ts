@@ -47,6 +47,15 @@ export interface Partnership {
   url: string;
 }
 
+export interface FaqItem {
+  id: string;
+  question: string;
+  answer: string;
+  sortOrder: number;
+  active: boolean;
+  createdAt: string;
+}
+
 export interface AboutInfoItem {
   label: string;
   value: string;
@@ -73,4 +82,5 @@ export interface AdminContent {
   team: TeamMember[];
   partnerships: Partnership[];
   about: AboutPage;
+  faq: FaqItem[];
 }
