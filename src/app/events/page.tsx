@@ -1,4 +1,5 @@
 import EventHeartCard from "@/components/EventHeartCard";
+import EventHistoryDisclaimer from "@/components/EventHistoryDisclaimer";
 import { getEvents } from "@/lib/db/events";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +30,8 @@ export default async function EventsPage() {
           ))}
         </div>
       )}
+
+      <EventHistoryDisclaimer />
     </div>
   );
 }

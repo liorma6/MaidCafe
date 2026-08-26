@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import EventHistoryDisclaimer from "@/components/EventHistoryDisclaimer";
 import EventPhotoGallery, { EventCoverImage } from "@/components/EventPhotoGallery";
 import ImageLightbox from "@/components/ImageLightbox";
 import type { EventAlbum } from "@/lib/types";
@@ -109,6 +110,10 @@ export default function EventDetailContent({ event, formattedDate }: Props) {
           onNavigate={setLightboxIndex}
         />
       )}
+
+      <div className="pt-4">
+        <EventHistoryDisclaimer />
+      </div>
     </>
   );
 }
