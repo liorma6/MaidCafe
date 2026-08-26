@@ -78,7 +78,7 @@ export default function Footer() {
             <Link href="/" className="transition hover:scale-105">
               <Image
                 src="/images/logo.png"
-                alt="לוגו Unique Maid Cafe - מייד קפה ישראלי באירועים"
+                alt="Unique Maid Cafe Israel logo - Maid cafe pop-up events in Israel"
                 width={160}
                 height={160}
                 className="drop-shadow-lg"

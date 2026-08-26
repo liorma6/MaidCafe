@@ -31,7 +31,7 @@ export default function TeamCard({ member, peekSide = "left", onPeek }: Props) {
           <div className="relative h-36 w-36 shrink-0 overflow-hidden rounded-full border-4 border-pink-300 bg-white shadow-lg transition hover:scale-105 hover:border-pink-400">
             <Image
               src={member.image}
-              alt={`צוות המייד קפה ${member.name} - ${member.role}`}
+              alt={`Maid Cafe team member ${member.name} - צוות המייד קפה ${member.name}`}
               fill
               className="object-cover object-top"
               sizes="144px"

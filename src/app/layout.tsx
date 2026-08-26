@@ -4,7 +4,7 @@ import { Rubik } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SiteExtras from "@/components/SiteExtras";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/constants";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/constants";
 import "./globals.css";
 
 const rubik = Rubik({
@@ -14,21 +14,27 @@ const rubik = Rubik({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: `${SITE_NAME} | מייד קפה ישראלי`,
+  title: SITE_TITLE,
   description: SITE_DESCRIPTION,
   keywords: [
+    "Maid Cafe",
+    "Maid Cafe Israel",
+    "Unique Maid Cafe",
+    "The first Maid Cafe in Israel",
+    "Cosplay",
+    "Japanese culture",
+    "Events",
+    "Tel Aviv",
     "מייד קפה",
     "ישראל",
     "בית קפה יפני",
     "אנימה",
-    "Maid Cafe",
-    "Unique Maid Cafe",
     "kawaii",
     "פופ-אפ",
     "אירועים",
   ],
   openGraph: {
-    title: `${SITE_NAME} | מייד קפה ישראלי`,
+    title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     siteName: SITE_NAME,
@@ -39,13 +45,13 @@ export const metadata: Metadata = {
         url: "/images/logo.png",
         width: 220,
         height: 220,
-        alt: SITE_NAME,
+        alt: "Unique Maid Cafe Israel - The first Maid Cafe in Israel",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} | מייד קפה ישראלי`,
+    title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     images: ["/images/logo.png"],
   },

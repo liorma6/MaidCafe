@@ -14,7 +14,7 @@ export default function Navbar() {
         <Link href="/" className="flex items-center gap-3 transition hover:scale-105">
           <Image
             src="/images/logo.png"
-            alt="לוגו Unique Maid Cafe - מייד קפה ישראלי"
+            alt="Unique Maid Cafe Israel logo - Maid Cafe in Israel | לוגו מייד קפה ישראלי"
             width={80}
             height={80}
             className="drop-shadow-md"

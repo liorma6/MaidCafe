@@ -31,7 +31,7 @@ export default function EventDetailContent({ event, formattedDate }: Props) {
     if (index >= 0) setLightboxIndex(index);
   };
 
-  const imageAlt = `מייד קפה באירוע ${event.title} - Unique Maid Cafe`;
+  const imageAlt = `Maid cafe pop-up event in Israel - ${event.title} | מייד קפה באירוע ${event.title}`;
 
   return (
     <>

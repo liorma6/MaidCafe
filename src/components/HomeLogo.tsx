@@ -122,7 +122,7 @@ export default function HomeLogo() {
     >
       <Image
         src="/images/logo.png"
-        alt="לוגו Unique Maid Cafe - המייד קפה הראשון בישראל"
+        alt="Unique Maid Cafe logo - The first Maid Cafe in Israel | לוגו המייד קפה הראשון בישראל"
         width={220}
         height={220}
         className="pointer-events-none mx-auto drop-shadow-xl"

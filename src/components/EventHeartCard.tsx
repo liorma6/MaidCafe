@@ -28,7 +28,7 @@ export default function EventHeartCard({ event }: Props) {
           {cover ? (
             <Image
               src={cover}
-              alt={`מייד קפה באירוע ${event.title} - Unique Maid Cafe`}
+              alt={`Maid cafe pop-up event in Israel - ${event.title} | מייד קפה באירוע ${event.title}`}
               fill
               className="object-cover transition duration-300 group-hover:scale-105"
               sizes="(max-width: 640px) 50vw, 320px"

@@ -35,6 +35,17 @@ export default async function HomePage() {
             אתם מחפשים מייד קפה לאירוע מיוחד או חוויה יפנית ייחודית — אנחנו כאן
             בשבילכם! ♡
           </p>
+          <p
+            lang="en"
+            dir="ltr"
+            className="mt-4 text-sm leading-relaxed text-pink-600/80"
+          >
+            Unique Maid Cafe is the first Maid Cafe in Israel, bringing authentic
+            Japanese maid cafe culture to Tel Aviv and across the country. Looking
+            for a Maid Cafe in Israel for your next event, festival, or cosplay
+            gathering? We&apos;re your kawaii pop-up team — ready to serve with
+            heart! ♡
+          </p>
         </div>
       </section>
 

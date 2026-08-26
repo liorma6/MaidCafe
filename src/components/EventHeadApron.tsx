@@ -13,7 +13,7 @@ export default function EventHeadApron({ className = "" }: Props) {
     >
       <Image
         src="/images/event-head-apron.png"
-        alt="איור מייד קפה על כרטיס אירוע קונספט"
+        alt="Maid Cafe event card illustration - איור מייד קפה על כרטיס אירוע"
         width={954}
         height={488}
         className="event-head-apron-img"

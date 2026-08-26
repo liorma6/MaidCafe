@@ -118,7 +118,7 @@ export default function EventPhotoGallery({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={src}
-            alt={`תמונה מאירוע מייד קפה ${title}`}
+            alt={`Maid cafe pop-up event in Israel - ${title} | תמונה מאירוע מייד קפה ${title}`}
             className="h-full w-full object-contain p-1 transition duration-300 group-hover:scale-[1.02]"
             onLoad={(e) => {
               const img = e.currentTarget;
