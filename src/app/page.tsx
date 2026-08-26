@@ -1,4 +1,5 @@
 import AnnouncementCard from "@/components/AnnouncementCard";
+import HomeFaq from "@/components/HomeFaq";
 import HomeLogo from "@/components/HomeLogo";
 import HomeVisitorTracker from "@/components/HomeVisitorTracker";
 import Link from "next/link";
@@ -100,6 +101,8 @@ export default async function HomePage() {
           <p className="mt-1 text-sm text-pink-500">מוצרים מתוקים לקחת הביתה</p>
         </Link>
       </section>
+
+      <HomeFaq />
     </div>
   );
 }
