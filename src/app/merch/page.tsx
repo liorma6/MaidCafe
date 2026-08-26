@@ -43,7 +43,7 @@ export default async function MerchPage() {
                 <div className="relative aspect-square">
                   <Image
                     src={item.image}
-                    alt={item.title}
+                    alt={`מרצ' מייד קפה - ${item.title}`}
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, 50vw"

@@ -901,7 +901,7 @@ function EventsTab({
               <div className="heart-shape relative aspect-[1/1.05] overflow-hidden border-4 border-pink-300">
                 <img
                   src={coverPreview}
-                  alt="תצוגה מקדימה"
+                  alt="תצוגה מקדימה של כיסוי אירוע מייד קפה"
                   className="h-full w-full object-cover"
                 />
               </div>
@@ -962,8 +962,7 @@ function EventsTab({
               {event.coverImage ? (
                 <img
                   src={event.coverImage}
-                  alt=""
-                  className="heart-shape h-24 w-24 shrink-0 border-4 border-pink-300 object-cover"
+                  alt={`כיסוי אירוע מייד קפה ${event.title}`}
                 />
               ) : (
                 <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-pink-200 bg-pink-50 text-2xl text-pink-300">
@@ -1052,8 +1051,7 @@ function EventsTab({
               <div key={img} className="group relative h-20 w-20 shrink-0">
                 <img
                   src={img}
-                  alt=""
-                  className="h-full w-full rounded-lg border border-pink-200 object-cover"
+                  alt={`תמונה מאירוע מייד קפה ${event.title}`}
                 />
                 <button
                   type="button"
@@ -1279,8 +1277,7 @@ function MerchTab({
           {item.image ? (
             <img
               src={item.image}
-              alt={item.title}
-              className="h-24 w-24 rounded-lg object-cover"
+              alt={`מרצ' מייד קפה - ${item.title}`}
             />
           ) : (
             <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-pink-100 text-pink-300">
@@ -1544,13 +1541,12 @@ function TeamTab({
                   <div className="flex gap-2">
                     <img
                       src={member.image}
-                      alt={member.name}
-                      className="h-16 w-16 rounded-full border-2 border-pink-200 object-cover"
+                      alt={`צוות המייד קפה ${member.name} - ${member.role}`}
                     />
                     {member.chibiImage ? (
                       <img
                         src={member.chibiImage}
-                        alt={`${member.name} chibi`}
+                        alt={`דמות chibi של ${member.name} מצוות המייד קפה`}
                         className="h-16 w-16 rounded-xl border-2 border-pink-200 bg-pink-50 object-contain p-1"
                       />
                     ) : (
@@ -1884,8 +1880,7 @@ function PartnershipsTab({
           {partner.image ? (
             <img
               src={partner.image}
-              alt={partner.name}
-              className="h-24 w-24 rounded-lg border border-pink-200 object-cover"
+              alt={`שותף מייד קפה ${partner.name}`}
             />
           ) : (
             <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-pink-100 text-pink-300">

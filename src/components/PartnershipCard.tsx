@@ -19,7 +19,7 @@ export default function PartnershipCard({ partner }: Props) {
         {partner.image ? (
           <Image
             src={partner.image}
-            alt={partner.name}
+            alt={`שותף מייד קפה ${partner.name} - Unique Maid Cafe`}
             fill
             className="object-cover"
             sizes="(max-width: 640px) 176px, 192px"

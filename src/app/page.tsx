@@ -18,15 +18,24 @@ export default async function HomePage() {
     <div className="space-y-10">
       <HomeVisitorTracker />
       <section className="text-center">
+        <h1 className="sr-only">Unique Maid Cafe - המייד קפה הראשון בישראל</h1>
         <HomeLogo />
-        <h1 className="text-3xl font-bold text-pink-600 md:text-4xl">
+        <p className="text-3xl font-bold text-pink-600 md:text-4xl">
           ברוכים הבאים ל-Unique Maid Cafe!
-        </h1>
-        <p className="mt-3 text-lg text-pink-500">{SITE_TAGLINE}</p>
-        <p className="mx-auto mt-4 max-w-xl text-pink-800/70">
-          מייד קפה ישראלי בקונספט יפני — אנחנו מגיעים לאירועים, פסטיבלים וכנסים
-          עם חוויה מתוקה, kawaii ומלאה בקסם! ♡
         </p>
+        <p className="mt-3 text-lg text-pink-500">{SITE_TAGLINE}</p>
+        <div className="mx-auto mt-6 max-w-2xl">
+          <h2 className="text-xl font-bold text-pink-700 md:text-2xl">
+            מייד קפה ישראלי — תרבות יפן, אנימה ואירועי קונספט
+          </h2>
+          <p className="mt-4 leading-relaxed text-pink-800/75">
+            Unique Maid Cafe הוא המייד קפה הראשון בישראל שמביא את תרבות יפן ועולם
+            האנימה לחוויה חיה ומתוקה. אנחנו מתמחים באירועי קונספט, פסטיבלים וכנסים —
+            צוות מיידים ומלצרים בסגנון יפני, שירות kawaii ואווירה שאין שני לה. בין אם
+            אתם מחפשים מייד קפה לאירוע מיוחד או חוויה יפנית ייחודית — אנחנו כאן
+            בשבילכם! ♡
+          </p>
+        </div>
       </section>
 
       <section>

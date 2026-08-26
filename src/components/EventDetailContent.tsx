@@ -31,13 +31,15 @@ export default function EventDetailContent({ event, formattedDate }: Props) {
     if (index >= 0) setLightboxIndex(index);
   };
 
+  const imageAlt = `מייד קפה באירוע ${event.title} - Unique Maid Cafe`;
+
   return (
     <>
       <header className="space-y-4">
         {event.coverImage && (
           <EventCoverImage
             src={event.coverImage}
-            alt={event.title}
+            alt={imageAlt}
             onOpen={() => openLightbox(lightboxImages.indexOf(event.coverImage))}
           />
         )}
@@ -102,7 +104,7 @@ export default function EventDetailContent({ event, formattedDate }: Props) {
         <ImageLightbox
           images={lightboxImages}
           currentIndex={lightboxIndex}
-          alt={event.title}
+          alt={imageAlt}
           onClose={() => setLightboxIndex(null)}
           onNavigate={setLightboxIndex}
         />

@@ -62,7 +62,7 @@ export default function TeamChibiScreenPeek({ peek, onDone }: Props) {
       <div className="chibi-screen-peek-body relative h-44 w-44 sm:h-52 sm:w-52 md:h-60 md:w-60">
         <Image
           src={peek.member.chibiImage}
-          alt=""
+          alt={`דמות chibi של ${peek.member.name} מצוות המייד קפה`}
           fill
           className="object-contain drop-shadow-2xl"
           sizes="240px"

@@ -13,7 +13,7 @@ export default function EventHeadApron({ className = "" }: Props) {
     >
       <Image
         src="/images/event-head-apron.png"
-        alt=""
+        alt="איור מייד קפה על כרטיס אירוע קונספט"
         width={954}
         height={488}
         className="event-head-apron-img"
