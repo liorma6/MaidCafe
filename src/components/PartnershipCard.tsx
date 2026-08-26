@@ -41,7 +41,7 @@ export default function PartnershipCard({ partner }: Props) {
       </div>
 
       {partner.description ? (
-        <p className="relative z-10 mt-5 text-center text-sm leading-relaxed text-pink-800/75">
+        <p className="preserve-lines relative z-10 mt-5 text-center text-sm leading-relaxed text-pink-800/75">
           {partner.description}
         </p>
       ) : (

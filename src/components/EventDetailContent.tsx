@@ -47,7 +47,7 @@ export default function EventDetailContent({ event, formattedDate }: Props) {
           </h1>
           <p className="mt-1 text-sm text-pink-400">{formattedDate}</p>
           {event.description && (
-            <p className="mt-3 leading-relaxed text-pink-800/80">
+            <p className="preserve-lines mt-3 leading-relaxed text-pink-800/80">
               {event.description}
             </p>
           )}

@@ -58,7 +58,7 @@ export default async function MerchPage() {
               <div className="p-4">
                 <h2 className="text-lg font-bold text-pink-700">{item.title}</h2>
                 {item.description && (
-                  <p className="mt-1 text-sm text-pink-800/70">{item.description}</p>
+                  <p className="preserve-lines mt-1 text-sm text-pink-800/70">{item.description}</p>
                 )}
                 {item.price && (
                   <p className="mt-2 text-lg font-bold text-pink-600">{item.price}</p>

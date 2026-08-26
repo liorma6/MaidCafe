@@ -41,7 +41,7 @@ export default function TeamCard({ member, peekSide = "left", onPeek }: Props) {
 
           <div className="flex-1 text-center sm:text-right">
             <p className="text-sm font-bold text-pink-500">{member.role}</p>
-            <p className="mt-2 text-base font-semibold leading-snug text-pink-700 text-outline">
+            <p className="preserve-lines mt-2 text-base font-semibold leading-snug text-pink-700 text-outline">
               {member.catchphrase}
             </p>
           </div>

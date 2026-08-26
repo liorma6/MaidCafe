@@ -53,7 +53,7 @@ export async function updateTeamMember(
   const updates: Partial<TeamRow> = {};
   if (input.name) updates.name = input.name;
   if (input.role) updates.role = input.role;
-  if (input.catchphrase) updates.catchphrase = input.catchphrase;
+  if (input.catchphrase !== undefined) updates.catchphrase = input.catchphrase;
 
   const { error } = await supabase.from("team_members").update(updates).eq("id", id);
   if (error) throw new Error(error.message);

@@ -1019,7 +1019,7 @@ function EventsTab({
                       onSave={(start, end) => handleUpdateDates(event.id, start, end)}
                     />
                     {event.description && (
-                      <p className="mt-1 text-sm text-pink-800/70">{event.description}</p>
+                      <p className="preserve-lines mt-1 text-sm text-pink-800/70">{event.description}</p>
                     )}
                     <p className="mt-1 text-xs text-pink-400">
                       {event.images.length} תמונות · {event.videos.length} סרטונים
@@ -1289,7 +1289,7 @@ function MerchTab({
           )}
           <div className="flex-1">
             <h3 className="font-bold text-pink-700">{item.title}</h3>
-            <p className="text-sm text-pink-800/70">{item.description}</p>
+            <p className="preserve-lines text-sm text-pink-800/70">{item.description}</p>
             <p className="font-semibold text-pink-600">{item.price}</p>
             <div className="mt-3">
               <FileUploadButton
@@ -1451,10 +1451,11 @@ function TeamTab({
             className="admin-input"
             required
           />
-          <input
+          <textarea
             value={newCatchphrase}
             onChange={(e) => setNewCatchphrase(e.target.value)}
-            placeholder="משפט תפיסה"
+            placeholder="משפט תפיסה (Enter לירידת שורה)"
+            rows={3}
             className="admin-input"
             required
           />
@@ -1515,13 +1516,14 @@ function TeamTab({
                 className="admin-input"
                 placeholder="תפקיד"
               />
-              <input
+              <textarea
                 value={editing.catchphrase}
                 onChange={(e) =>
                   setEditing({ ...editing, catchphrase: e.target.value })
                 }
                 className="admin-input"
-                placeholder="משפט תפיסה"
+                placeholder="משפט תפיסה (Enter לירידת שורה)"
+                rows={3}
               />
               <div className="flex gap-2">
                 <button onClick={handleSave} className="admin-btn">
@@ -1560,7 +1562,7 @@ function TeamTab({
                   <div>
                     <h3 className="font-bold text-pink-700">{member.name}</h3>
                     <p className="text-sm text-pink-500">{member.role}</p>
-                    <p className="text-sm text-pink-800/70">{member.catchphrase}</p>
+                    <p className="preserve-lines text-sm text-pink-800/70">{member.catchphrase}</p>
                   </div>
                 </div>
                 <div className="flex shrink-0 flex-col gap-2">
@@ -1940,7 +1942,7 @@ function PartnershipsTab({
             ) : (
               <>
                 <h3 className="font-bold text-pink-700">{partner.name}</h3>
-                <p className="text-sm text-pink-800/70">{partner.description}</p>
+                <p className="preserve-lines text-sm text-pink-800/70">{partner.description}</p>
                 {partner.url && (
                   <p className="mt-1 truncate text-xs text-pink-500" dir="ltr">
                     {partner.url}

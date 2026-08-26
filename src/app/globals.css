@@ -82,6 +82,10 @@ button:disabled,
   box-shadow: 0 4px 15px rgba(255, 105, 180, 0.15);
 }
 
+.preserve-lines {
+  white-space: pre-wrap;
+}
+
 .admin-input {
   width: 100%;
   border: 2px solid #ffc0d9;
@@ -100,6 +104,9 @@ button:disabled,
 
 textarea.admin-input {
   border-radius: 1rem;
+  resize: vertical;
+  min-height: 5rem;
+  white-space: pre-wrap;
 }
 
 .admin-btn {
