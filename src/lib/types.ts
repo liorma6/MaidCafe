@@ -47,10 +47,22 @@ export interface Partnership {
   url: string;
 }
 
+export interface AboutInfoItem {
+  label: string;
+  value: string;
+}
+
+export interface AboutInfoSection {
+  title: string;
+  items: AboutInfoItem[];
+}
+
 export interface AboutPage {
   id: string;
   title: string;
   content: string;
+  image: string;
+  infoSections: AboutInfoSection[];
   updatedAt: string;
 }
 

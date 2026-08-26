@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FileUploadButton from "@/components/FileUploadButton";
 import HeartImageCropModal from "@/components/HeartImageCropModal";
 import LinkifiedText from "@/components/LinkifiedText";
@@ -13,6 +13,7 @@ import {
 import type { ReorderEntity } from "@/lib/db/reorder";
 import { sortAnnouncements } from "@/lib/sort-utils";
 import type {
+  AboutInfoSection,
   AboutPage,
   Announcement,
   EventAlbum,
@@ -1620,6 +1621,17 @@ function AboutTab({
 }) {
   const [title, setTitle] = useState(about.title);
   const [content, setContent] = useState(about.content);
+  const [image, setImage] = useState(about.image);
+  const [infoSections, setInfoSections] = useState<AboutInfoSection[]>(
+    about.infoSections,
+  );
+
+  useEffect(() => {
+    setTitle(about.title);
+    setContent(about.content);
+    setImage(about.image);
+    setInfoSections(about.infoSections);
+  }, [about]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1627,7 +1639,7 @@ function AboutTab({
     const res = await fetch("/api/about", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, content }),
+      body: JSON.stringify({ title, content, image, infoSections }),
     });
     if (res.ok) {
       const updated = await res.json();
@@ -1640,26 +1652,247 @@ function AboutTab({
     setLoading(false);
   };
 
+  const handleUpload = async (file: File) => {
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch("/api/about/upload", {
+      method: "POST",
+      body: formData,
+    });
+    if (res.ok) {
+      const { about: updated } = await res.json();
+      setData((d) => ({ ...d, about: updated }));
+      setImage(updated.image);
+      showMessage("תמונת הצד הועלתה! ✨");
+    } else {
+      const data = await res.json();
+      showMessage(data.error || "שגיאה בהעלאה");
+    }
+    setLoading(false);
+  };
+
+  const addSection = () => {
+    setInfoSections((sections) => [
+      ...sections,
+      { title: "", items: [{ label: "", value: "" }] },
+    ]);
+  };
+
+  const removeSection = (index: number) => {
+    setInfoSections((sections) => sections.filter((_, i) => i !== index));
+  };
+
+  const updateSectionTitle = (index: number, value: string) => {
+    setInfoSections((sections) =>
+      sections.map((section, i) =>
+        i === index ? { ...section, title: value } : section,
+      ),
+    );
+  };
+
+  const addItem = (sectionIndex: number) => {
+    setInfoSections((sections) =>
+      sections.map((section, i) =>
+        i === sectionIndex
+          ? { ...section, items: [...section.items, { label: "", value: "" }] }
+          : section,
+      ),
+    );
+  };
+
+  const removeItem = (sectionIndex: number, itemIndex: number) => {
+    setInfoSections((sections) =>
+      sections.map((section, i) =>
+        i === sectionIndex
+          ? {
+              ...section,
+              items: section.items.filter((_, j) => j !== itemIndex),
+            }
+          : section,
+      ),
+    );
+  };
+
+  const updateItem = (
+    sectionIndex: number,
+    itemIndex: number,
+    field: "label" | "value",
+    value: string,
+  ) => {
+    setInfoSections((sections) =>
+      sections.map((section, i) =>
+        i === sectionIndex
+          ? {
+              ...section,
+              items: section.items.map((item, j) =>
+                j === itemIndex ? { ...item, [field]: value } : item,
+              ),
+            }
+          : section,
+      ),
+    );
+  };
+
   return (
-    <form onSubmit={handleSave} className="kawaii-card space-y-4 p-6">
-      <h2 className="text-lg font-bold text-pink-700">עריכת עמוד &quot;מי אנחנו&quot;</h2>
-      <p className="text-sm text-pink-500">
-        התוכן יוצג למשקיעים, שותפים וכל מי שמתעניין בקיומנו.
-      </p>
-      <input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="כותרת העמוד"
-        className="admin-input"
-        required
-      />
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder="תוכן העמוד... (קישורים עם https:// יהיו לחיצים)"
-        rows={12}
-        className="admin-input"
-      />
+    <form onSubmit={handleSave} className="space-y-6">
+      <div className="kawaii-card space-y-4 p-6">
+        <h2 className="text-lg font-bold text-pink-700">עריכת עמוד &quot;מי אנחנו&quot;</h2>
+        <p className="text-sm text-pink-500">
+          התוכן יוצג למשקיעים, שותפים וכל מי שמתעניין בקיומנו.
+        </p>
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="כותרת העמוד"
+          className="admin-input"
+          required
+        />
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="תוכן העמוד... (קישורים עם https:// יהיו לחיצים)"
+          rows={12}
+          className="admin-input"
+        />
+      </div>
+
+      <div className="kawaii-card space-y-4 p-6">
+        <h3 className="text-lg font-bold text-pink-700">תמונת צד (אינפobox)</h3>
+        <p className="text-sm text-pink-500">
+          תמונה שתוצג בצד עמוד &quot;מי אנחנו&quot;, בסגנון ויקיפדיה.
+        </p>
+        {image ? (
+          <div className="flex flex-wrap items-start gap-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={image}
+              alt="תצוגה מקדימה - תמונת צד מי אנחנו"
+              className="h-40 w-40 rounded-2xl border-4 border-pink-200 object-cover"
+            />
+            <button
+              type="button"
+              onClick={() => setImage("")}
+              className="rounded-full bg-pink-100 px-4 py-2 text-sm font-semibold text-pink-700 hover:bg-pink-200"
+            >
+              הסר תמונה
+            </button>
+          </div>
+        ) : null}
+        <FileUploadButton
+          label="📸 העלאת תמונת צד"
+          hint="לוגו, צוות, או תמונה מייצגת — תוצג בצד העמוד"
+          onChange={(files) => {
+            const file = files[0];
+            if (file) void handleUpload(file);
+          }}
+        />
+      </div>
+
+      <div className="kawaii-card space-y-4 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-bold text-pink-700">בועות מידע (אינפobox)</h3>
+            <p className="text-sm text-pink-500">
+              קטלג מידע לפי קטגוריות — כמו בויקיפדיה (שם קטגוריה + שדות).
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={addSection}
+            className="rounded-full bg-pink-100 px-4 py-2 text-sm font-semibold text-pink-700 hover:bg-pink-200"
+          >
+            + הוסף קטגוריה
+          </button>
+        </div>
+
+        {infoSections.length === 0 ? (
+          <p className="rounded-xl bg-pink-50 px-4 py-6 text-center text-sm text-pink-400">
+            אין בועות מידע עדיין — לחצו &quot;הוסף קטגוריה&quot; כדי להתחיל.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {infoSections.map((section, sectionIndex) => (
+              <div
+                key={sectionIndex}
+                className="rounded-2xl border-2 border-pink-200 bg-pink-50/50 p-4"
+              >
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <input
+                    value={section.title}
+                    onChange={(e) =>
+                      updateSectionTitle(sectionIndex, e.target.value)
+                    }
+                    placeholder='שם הקטגוריה (למשל: "כללי", "אירועים")'
+                    className="admin-input flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeSection(sectionIndex)}
+                    className="rounded-full bg-red-100 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-200"
+                  >
+                    מחק קטגוריה
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  {section.items.map((item, itemIndex) => (
+                    <div
+                      key={itemIndex}
+                      className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto]"
+                    >
+                      <input
+                        value={item.label}
+                        onChange={(e) =>
+                          updateItem(
+                            sectionIndex,
+                            itemIndex,
+                            "label",
+                            e.target.value,
+                          )
+                        }
+                        placeholder="שם השדה"
+                        className="admin-input"
+                      />
+                      <textarea
+                        value={item.value}
+                        onChange={(e) =>
+                          updateItem(
+                            sectionIndex,
+                            itemIndex,
+                            "value",
+                            e.target.value,
+                          )
+                        }
+                        placeholder="ערך (טקסט או קישור)"
+                        rows={2}
+                        className="admin-input"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeItem(sectionIndex, itemIndex)}
+                        className="rounded-full bg-pink-100 px-3 py-2 text-xs font-semibold text-pink-600 hover:bg-pink-200"
+                        aria-label="מחק שדה"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => addItem(sectionIndex)}
+                  className="mt-3 rounded-full bg-white px-4 py-2 text-xs font-semibold text-pink-700 shadow-sm hover:bg-pink-100"
+                >
+                  + הוסף שדה
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <button type="submit" disabled={loading} className="admin-btn">
         {loading ? "שומר..." : "שמור שינויים ✨"}
       </button>

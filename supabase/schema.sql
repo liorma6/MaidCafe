@@ -74,6 +74,8 @@ create table if not exists about_page (
   id text primary key default 'main',
   title text not null default 'מי אנחנו',
   content text not null default '',
+  image text not null default '',
+  info_sections jsonb not null default '[]'::jsonb,
   updated_at timestamptz not null default now()
 );
 

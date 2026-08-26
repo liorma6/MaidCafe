@@ -3,7 +3,7 @@ import { getStorageBucket } from "./env";
 import { getSupabaseAdmin } from "./supabase";
 
 export async function uploadImage(
-  folder: "events" | "merch" | "team" | "team-chibi" | "partnerships",
+  folder: "events" | "merch" | "team" | "team-chibi" | "partnerships" | "about",
   file: File,
 ): Promise<string> {
   return uploadFile(folder, file, file.type || "image/jpeg");
