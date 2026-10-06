@@ -34,12 +34,12 @@ export default function AccessibilityWidget() {
   };
 
   return (
-    <div className="fixed bottom-20 left-4 z-[90] flex flex-col items-start gap-2">
+    <div className="fixed bottom-20 left-4 z-[90]">
       {open && (
         <div
           role="menu"
           aria-label="תפריט נגישות"
-          className="kawaii-card min-w-[200px] space-y-2 p-4 shadow-xl"
+          className="kawaii-card absolute bottom-full left-0 mb-2 min-w-[200px] space-y-2 p-4 shadow-xl"
         >
           <p className="text-sm font-bold text-pink-700">נגישות</p>
           <button
